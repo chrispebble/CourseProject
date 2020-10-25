@@ -39,7 +39,7 @@ the virus was information. Governments, medical organizations,
 companies, and every institution imaginable began pushing out not just
 information, but also guidelines, rules, and policies.
 
-\`\`Information overload" is something people in today’s society are
+"Information overload" is something people in today’s society are
 accustomed. Most people develop methods of coping with the huge amount
 of information available. We filter things through trusted sources,
 prioritize information that is actionable, and change our mental model
@@ -71,10 +71,10 @@ potentially interesting documents (recommender). These techniques can be
 modified to assist a reader in identifying new useful information.
 
 Our goal is to create a reading assistant tool that allows a user to
-maintain a collection of \`\`seen“ or \`\`read” documents (reflecting
+maintain a collection of "seen“ or "read” documents (reflecting
 the current knowledge of the user) and provides novelty scores based on
 new documents introduced to the collection. Given a new document, the
-reading assistant tool will compare the document to all \`\`seen"
+reading assistant tool will compare the document to all "seen"
 documents, and provide the user with measures indicating how the new
 document differs from the document collection. In this way, potentially
 useful new documents can be efficiently prioritized by the user.
@@ -110,7 +110,7 @@ CORD-19 Coronavirus document data set[^2] as our training and testing
 data. Aditionally, we will use the Python programming language. To
 create the tool, we will begin by leveraging our understanding of the
 BM25 ranking algorithm (which measures document similarity) to construct
-an \`\`inverted BM25" distance function (which measures document
+an "inverted BM25" distance function (which measures document
 difference).
 
 In order to demonstrate the usefulness of our tool, we will manually
@@ -119,7 +119,7 @@ seen documents. In some cases the seen documents will be randomly
 selected, and in other cases they will all be of a certain topic. Then,
 we will pass the scored documents to our tool and see if it categorizes
 the documents in line with our manual scoring. We discuss a rough
-timeline in Section [workload]
+timeline in Section [Workload]
 
 Workload
 --------
@@ -128,7 +128,7 @@ We will spend the first 20 hours defining and understanding the project
 scope. Here, we will begin by defining what it means for two documents
 to be distinct (or similar). We will also attempt to quantitatively
 define a distance measure between documents or paragraphs. Additionally,
-we will define the scope of \`\`seen“ and \`\`unseen” documents. That
+we will define the scope of "seen“ and "unseen” documents. That
 is, we might need to assume that the reader has read many documents for
 recommendation to be effective (otherwise many documents will be
 considered novel).
@@ -147,9 +147,9 @@ effectiveness of our tool.
 The remaining 20 hours will be spent evaluating the tool and tuning any
 parameters. Given the subjectivity of relevance scores, we will likely
 need to manually judge documents. For example, this could include
-randomly choosing a set\`\`already seen“ documents, and hand-labeling
-additional documents as \`\`very similar”, \`\`somewhat similar“, or
-\`\`not similar” to \`\`already seen" documents. Then, we would see if
+randomly choosing a set "already seen“ documents, and hand-labeling
+additional documents as "very similar”, "somewhat similar“, or
+"not similar” to "already seen" documents. Then, we would see if
 the tool’s scores corresponded to our similarity classifications.
 
 In the case that we overestimated the time it takes to complete the
