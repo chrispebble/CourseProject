@@ -25,7 +25,7 @@
 Project Proposal
 ================
 
-Overview {#Overview}
+Overview
 --------
 
 In the early months of 2020, the now named SARS-CoV-2 virus was rapidly
