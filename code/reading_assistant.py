@@ -1,4 +1,6 @@
 import re
+import os
+
 
 class Document(object):
     """
@@ -80,47 +82,59 @@ class ReadingAssistant(object):
     """
     An assistant that finds differences between what a user has and has not read
     """
-    def __init__(self,read_document_path):
+    def __init__(self,read_documents_path):
         """
         Initialize the ReadingAssistant
         """
         self.read_documents_path = read_documents_path
         
-        self.read_documents = []
+        self.read_document_list = []
+        self.inv_idx = InvertedIndex()
 
     def add_document(self,document_path):
         """
         Adds document to read collection, assumes path is to text file
         """
-        pass
+        doc = Document(document_path)
+        doc.load_document()
+        doc.preprocess_document()
+        self.inv_idx.add_document(doc)
+        self.read_document_list.append(doc)
+
+    def remove_document(self,document_path):
+        """
+        Removes document from read collection, assumes path contains id
+        """
+        doc_id = document_path.split("/")[-1]
+        self.inv_idx.remove_document(doc_id)
+        self.read_document_list = [d for d in self.read_document_list if d.document_id != doc_id]
+
     def load_documents(self):
         """
         Loads all read documents 
         Assumes document path is path to directory containing text files
         """ 
-
-        pass
+        for doc_path in os.listdir(self.read_documents_path):
+            self.add_document(self.read_documents_path + doc_path)
     
-    def score_document(self):
-        pass
+    def score_document(self, document_path):
+        """
+        Scores new document against collection of already-read documents
+        Returns list of most-similar and most different documents?
+        """
+        new_document = Document(document_path)
+        new_document.load_document()
+        new_document.preprocess_document()
+        
 
 
 
 def main():
-    d1 = Document("../documents/read/doc1.txt")
-    d2 = Document("../documents/read/doc2.txt")
-    d3 = Document("../documents/read/doc3.txt")
-    inv_idx = InvertedIndex()
-    
-    for d in [d1,d2,d3]:
-        d.load_document()
-        d.preprocess_document()
-        inv_idx.add_document(d)
-
-    
-    #print(inv_idx.index)
-    inv_idx.remove_document(d1.document_id)
-    #print(inv_idx.index)
+    reading_assistant = ReadingAssistant('../documents/read/')
+    reading_assistant.load_documents()
+    print(reading_assistant.read_document_list)
+    reading_assistant.remove_document('../documents/read/doc1.txt')
+    print(reading_assistant.read_document_list)
 
 if __name__ == '__main__':
     main()
