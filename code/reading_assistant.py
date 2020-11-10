@@ -17,13 +17,11 @@ class Document(object):
     def load_document(self):
         """
         Loads a document given a document path to a text file
-        Assumes first line is unique ID, rest of lines are document
         """
         with open(self.document_path,'r') as f:
-            lines = f.read().split('\n')
-            self.document_id = lines[0]
-            self.unprocessed_text = lines[1:]
-
+            self.unprocessed_text = f.read().split('\n')
+            self.document_id = self.document_path.split("/")[-1]
+        print('Document ' + self.document_id + " loaded.")
     def preprocess_document(self):
         """
         Preprocesses and stores a document
@@ -37,7 +35,7 @@ class Document(object):
                 processed_sentence = [w for w in processed_sentence.split(" ") if len(w) > 0]
                 self.document_length += len(processed_sentence)
                 self.processed_text.append(processed_sentence)
-
+        print('Document ' + self.document_id + ' processed.')
 class InvertedIndex(object):
     """
     The inverted index for all seen documents
@@ -47,6 +45,7 @@ class InvertedIndex(object):
         Initializes the inverted index
         """
         self.index = {}
+        self.number_of_documents = 0
 
     def add_document(self,document):
         """
@@ -62,12 +61,20 @@ class InvertedIndex(object):
                 else:
                     self.index[word] = {}
                     self.index[word][document.document_id] = 1
+        self.number_of_documents += 1
+        print('Document ' + document.document_id + ' added to inverted index.')
+        print('Current read document count: ' + str(self.number_of_documents))
 
     def remove_document(self,document_id):
         """
         Removes Document from inverted index given document id
         """
-        pass
+        for word in self.index.keys():
+            if document_id in self.index[word].keys():
+                del self.index[word][document_id]
+        self.number_of_documents -= 1
+        print('Document ' + document_id + ' removed from inverted index.')
+        print('Current read document count: ' + str(self.number_of_documents))  
 
 class ReadingAssistant(object):
     """
@@ -111,7 +118,9 @@ def main():
         inv_idx.add_document(d)
 
     
-    print(inv_idx.index)
+    #print(inv_idx.index)
+    inv_idx.remove_document(d1.document_id)
+    #print(inv_idx.index)
 
 if __name__ == '__main__':
     main()
