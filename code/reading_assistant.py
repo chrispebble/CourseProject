@@ -82,7 +82,7 @@ class InvertedIndex(object):
         new_total_length = (self.number_of_documents * self.average_document_length) - document.document_length
         self.number_of_documents -= 1
         self.average_document_length = new_total_length / self.number_of_documents
-        print('Document ' + document_id + ' removed from inverted index.')
+        print('Document ' + document.document_id + ' removed from inverted index.')
         print('Current read document count: ' + str(self.number_of_documents))  
 
 class ReadingAssistant(object):
@@ -112,10 +112,15 @@ class ReadingAssistant(object):
         """
         Removes document from read collection, assumes path contains id
         """
-        # UPDATE TO SEND DOC NOT DOC ID
         doc_id = document_path.split("/")[-1]
-        self.inv_idx.remove_document(doc_id)
-        self.read_document_list = [d for d in self.read_document_list if d.document_id != doc_id]
+        removed_index = None
+        for i,doc in enumerate(self.read_document_list):
+            if doc.document_id == doc_id:
+                self.inv_idx.remove_document(doc)
+                removed_index = i
+                break
+        if removed_index:
+            del self.read_document_list[removed_index]
 
     def load_documents(self):
         """
@@ -176,6 +181,10 @@ def main():
     reading_assistant = ReadingAssistant('../documents/read/')
     reading_assistant.load_documents()
     print(reading_assistant.score_document('../documents/unread/basketball.txt'))
+    reading_assistant.remove_document('../documents/read/baseball.txt')
+    print(reading_assistant.score_document('../documents/unread/basketball.txt'))  
+
+
 
 if __name__ == '__main__':
     main()
