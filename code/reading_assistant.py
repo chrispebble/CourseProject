@@ -181,8 +181,8 @@ def main():
     reading_assistant = ReadingAssistant('../documents/read/')
     reading_assistant.load_documents()
     print(reading_assistant.score_document('../documents/unread/basketball.txt'))
-    reading_assistant.remove_document('../documents/read/baseball.txt')
-    print(reading_assistant.score_document('../documents/unread/basketball.txt'))  
+    #reading_assistant.remove_document('../documents/read/baseball.txt')
+    #print(reading_assistant.score_document('../documents/unread/basketball.txt'))  
 
 
 
