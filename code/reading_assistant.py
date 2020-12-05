@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import math
 
 class Document(object):
@@ -8,13 +9,15 @@ class Document(object):
         Initializes a document
         """
         self.document_id = document_id
-        self.processed_text = processed_text # list of sentences
+        self.processed_text = processed_text  # list of sentences
         self.document_length = sum([len(sentence) for sentence in self.processed_text])
+
 
 class DocumentProcessor(object):
     """
     A DocumentProcessor broken down an article by whole document, paragraphs, and sentences
     """
+
     def __init__(self, document_path, level):
         """
         Initializes a document
@@ -23,19 +26,18 @@ class DocumentProcessor(object):
         self.document_id = None
         self.unprocessed_text = None
         self.processed_text = []
-        #self.document_length = 0
+        # self.document_length = 0
         self.level = level
 
-        self.docs = [] # a list of Document objects
+        self.docs = []  # a list of Document objects
         self.load_document()
         self.preprocess_document()
-
 
     def load_document(self):
         """
         Loads a document given a document path to a text file
         """
-        with open(self.document_path,'r') as f:
+        with open(self.document_path, 'r') as f:
             self.unprocessed_text = f.read().split('\n')
             self.document_id = self.document_path.split("/")[-1]
         print('Document ' + self.document_id + " loaded.")
@@ -46,13 +48,14 @@ class DocumentProcessor(object):
         Array indexed by paragraph, which are all indexed by sentences
         """
         if self.level == 'document':
-            text_by_sentence = " ".join(self.unprocessed_text).split('.')  # <-- adding \n for each sentence is a null-op since you joined then again and split by periods
+            text_by_sentence = " ".join(self.unprocessed_text).split(
+                '.')  # <-- adding \n for each sentence is a null-op since you joined then again and split by periods
             processed_sentences = []
             for sentence in text_by_sentence:
                 if len(sentence) > 2:
-                    processed_sentence = re.sub("[^a-zA-Z -]+","",sentence.lower().strip())
+                    processed_sentence = re.sub("[^a-zA-Z -]+", "", sentence.lower().strip())
                     processed_sentence = [w for w in processed_sentence.split(" ") if len(w) > 0]
-                    #self.document_length += len(processed_sentence)
+                    # self.document_length += len(processed_sentence)
                     self.processed_text.append(processed_sentence)
             print('Document ' + self.document_id + ' processed.')
 
@@ -66,7 +69,7 @@ class DocumentProcessor(object):
                 processed_paragraph = []
                 for sentence in text_by_sentence:
                     if len(sentence) > 2:
-                        processed_sentence = re.sub("[^a-zA-Z -]+","",sentence.lower().strip())
+                        processed_sentence = re.sub("[^a-zA-Z -]+", "", sentence.lower().strip())
                         processed_sentence = [w for w in processed_sentence.split(" ") if len(w) > 0]
                         processed_paragraph.append(processed_sentence)
                 print('Paragraph ' + document_id + ' processed.')
@@ -81,6 +84,7 @@ class InvertedIndex(object):
     """
     The inverted index for all seen documents
     """
+
     def __init__(self):
         """
         Initializes the inverted index
@@ -89,7 +93,7 @@ class InvertedIndex(object):
         self.number_of_documents = 0
         self.average_document_length = 0
 
-    def add_document(self,document):
+    def add_document(self, document):
         """
         Adds Document to inverted index
         """
@@ -109,26 +113,27 @@ class InvertedIndex(object):
         print('Document ' + document.document_id + ' added to inverted index.')
         print('Current read document count: ' + str(self.number_of_documents))
 
-    def remove_document(self,document):
+    def remove_document(self, document):
         """
         Removes Document from inverted index given document id
         """
         for word in self.index.keys():
             if document.document_id in self.index[word].keys():
                 del self.index[word][document.document_id]
-        
-        
+
         new_total_length = (self.number_of_documents * self.average_document_length) - document.document_length
         self.number_of_documents -= 1
         self.average_document_length = new_total_length / self.number_of_documents
         print('Document ' + document.document_id + ' removed from inverted index.')
-        print('Current read document count: ' + str(self.number_of_documents))  
+        print('Current read document count: ' + str(self.number_of_documents))
+
 
 class ReadingAssistant(object):
     """
     An assistant that finds differences between what a user has and has not read
     """
-    def __init__(self,read_documents_path,level):
+
+    def __init__(self, read_documents_path, level):
         """
         Initialize the ReadingAssistant
 
@@ -143,7 +148,7 @@ class ReadingAssistant(object):
         # the level at which the reading assistant does its analysis, choose from document|paragraph|sentence
         self.level = level
 
-    def add_document(self,document_path):
+    def add_document(self, document_path):
         """
         Adds document to read collection, assumes path is to text file
         """
@@ -151,18 +156,18 @@ class ReadingAssistant(object):
         docs = DocumentProcessor(document_path, level=self.level).get_docs()
 
         for doc in docs:
-            #doc.load_document()
-            #doc.preprocess_document()
+            # doc.load_document()
+            # doc.preprocess_document()
             self.inv_idx.add_document(doc)
             self.read_document_list.append(doc)
 
-    def remove_document(self,document_path):
+    def remove_document(self, document_path):
         """
         Removes document from read collection, assumes path contains id
         """
         doc_id = document_path.split("/")[-1]
         removed_index = None
-        for i,doc in enumerate(self.read_document_list):
+        for i, doc in enumerate(self.read_document_list):
             if doc.document_id == doc_id:
                 self.inv_idx.remove_document(doc)
                 removed_index = i
@@ -174,10 +179,10 @@ class ReadingAssistant(object):
         """
         Loads all read documents 
         Assumes document path is path to directory containing text files
-        """ 
+        """
         for doc_path in os.listdir(self.read_documents_path):
             self.add_document(self.read_documents_path + doc_path)
-    
+
     def score_document(self, document_path, k1=1.2, b=0.75):
         """
         Scores new document against collection of already-read documents
@@ -195,19 +200,19 @@ class ReadingAssistant(object):
                 doc_score = 0
                 for sentence in new_document.processed_text:
                     for word in sentence:
-                        tf = self.TF_score_helper(word,doc.document_id)
+                        tf = self.TF_score_helper(word, doc.document_id)
                         idf = self.IDF_score_helper(word)
                         numerator = tf * (k1 + 1)
-                        denominator = tf + (k1 * (1 - b + (b * (doc.document_length / self.inv_idx.average_document_length))))
+                        denominator = tf + (
+                                    k1 * (1 - b + (b * (doc.document_length / self.inv_idx.average_document_length))))
                         doc_score += idf * (numerator / denominator)
                 ranking.append((doc.document_id, doc_score))
-            rankings[new_document.document_id] = sorted(ranking, key = lambda x: x[1], reverse=True)
-        
+            rankings[new_document.document_id] = sorted(ranking, key=lambda x: x[1], reverse=True)
+
         # sort rankings
         return rankings
 
-
-    def TF_score_helper(self,keyword,doc_id):
+    def TF_score_helper(self, keyword, doc_id):
         """
         Given a keyword and doc_id, calculates the term frequency of keyword in document
         """
@@ -215,37 +220,71 @@ class ReadingAssistant(object):
         if keyword in self.inv_idx.index.keys():
             if doc_id in self.inv_idx.index[keyword].keys():
                 tf = self.inv_idx.index[keyword][doc_id]
-        return tf        
+        return tf
 
-
-    def IDF_score_helper(self,keyword):
+    def IDF_score_helper(self, keyword):
         """
         Given a keyword, calculates the inverse document frequency
-        """ 
+        """
         N = self.inv_idx.number_of_documents
         docs_containing_keyword = 0
         if keyword in self.inv_idx.index.keys():
             docs_containing_keyword = len(self.inv_idx.index[keyword])
         numerator = N - docs_containing_keyword + 0.5
         denominator = docs_containing_keyword + 0.5
-        return max(0,math.log((numerator/denominator) + 1))
+        return max(0, math.log((numerator / denominator) + 1))
 
 
-def main():
-    # reading_assistant = ReadingAssistant('../documents/lisa_read/', level='document')  # uncomment to rank at article level
-    reading_assistant = ReadingAssistant('../documents/lisa_read/', level='paragraph')
-    
+def main(arg_method, arg_read_path, arg_unread_doc, arg_k1, arg_b):
+
+    reading_assistant = ReadingAssistant(arg_read_path, level=arg_method)
+
     reading_assistant.load_documents()
-    rankings = reading_assistant.score_document('../documents/lisa_unread/quantum_mechanics.txt', k1=1, b=1)
-    
+
+    rankings = reading_assistant.score_document(arg_unread_doc, k1=arg_k1, b=arg_b)
+
     # print rankings
     for i in rankings.keys():
-        print("---------------------\n"+str(i))
+        print("---------------------\n" + str(i))
         print(rankings[i])
-    #reading_assistant.remove_document('../documents/read/baseball.txt')
-    #print(reading_assistant.score_document('../documents/unread/basketball.txt'))  
 
 
+if __name__ == "__main__":
+    """
+    Run from the command line, specifying level of analysis and path to read and unread documents.
+    """
 
-if __name__ == '__main__':
-    main()
+    if len(sys.argv) < 4 or (not sys.argv[1].startswith(("paragraph","document","doc2vec"))):
+        print("\nUsage: python reading_assistant.py analysis_method read_docs_path unread_doc_src [k1] [b] \n"
+              "    ... analysis_method : can be 'paragraph', 'document', or 'doc2vec'\n"
+              "    ... read_docs_path  : path containing text files that have been read by the user\n"
+              "    ... unread_doc_src  : file that is NOT YET read by the user\n"
+              "    ... [k1] (optional) : is the k1 value, when BM25 (paragraph, document) method used. Default: 1.2\n"
+              "    ... [b] (optional)  : is the b value, when BM25 (paragraph, document) method used. Default: 0.75\n\n"
+              )
+
+    else:
+        # tidy up some of the command line args
+
+        # just add trailing "/" if necessary
+        arg_read_docs_path = sys.argv[2]
+        if (not arg_read_docs_path.endswith("/")):
+            arg_read_docs_path = arg_read_docs_path + "/"
+
+        # and set default values for k1 and b
+        arg_k1 = 1.2
+        arg_b = 0.75
+        if len(sys.argv) == 6:
+            arg_k1 = sys.argv[4]
+            arg_b = sys.argv[5]
+
+        print("\nReading Assistant\n"
+              "  method: {}\n"
+              "    read: {}\n"
+              "  unread: {}\n"
+              "      k1: {}\n"
+              "       b: {}\n\n"
+              .format(sys.argv[1], arg_read_docs_path, sys.argv[3], arg_k1, arg_b))
+
+        # call main with command line args
+        main(sys.argv[1], arg_read_docs_path, sys.argv[3], arg_k1, arg_b)
