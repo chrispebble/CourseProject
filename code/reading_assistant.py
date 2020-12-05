@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import math
+from gensimlsi import *
 
 class Document(object):
     def __init__(self, document_id, processed_text):
@@ -235,18 +236,37 @@ class ReadingAssistant(object):
         return max(0, math.log((numerator / denominator) + 1))
 
 
-def main(arg_method, arg_read_path, arg_unread_doc, arg_k1, arg_b):
+def print_rankings(method, level, rankings):
+    for i in rankings.keys():
+        print("---------------------\n")
+        print(method, level, "ranking of", str(i))
+        print(rankings[i])
 
-    reading_assistant = ReadingAssistant(arg_read_path, level=arg_method)
+
+def main(arg_level, arg_read_path, arg_unread_doc, arg_k1, arg_b):
+
+    reading_assistant = ReadingAssistant(arg_read_path, level=arg_level)
 
     reading_assistant.load_documents()
 
+    # BM25 rankings
     rankings = reading_assistant.score_document(arg_unread_doc, k1=arg_k1, b=arg_b)
+    print_rankings("BM25", arg_level, rankings)
 
-    # print rankings
-    for i in rankings.keys():
-        print("---------------------\n" + str(i))
-        print(rankings[i])
+    # for i in rankings.keys():
+    #     print("---------------------\n")
+    #     print("[ BM25 ", arg_method, " ranking ] for ", str(i))
+    #     print(rankings[i])
+
+    # LSI, but  ranking is only set up for document-level ranking right now
+    if arg_level == "document":
+        lsi_rankings = gensim_lsi(arg_read_path, arg_unread_doc)
+        print_rankings("LSI", arg_level, lsi_rankings)
+
+        # for i in lsi_rankings.keys():
+        #     print("---------------------\n")
+        #     print("[ LSI ", arg_method, " ranking ] for ", str(i))
+        #     print(lsi_rankings[i])
 
 
 if __name__ == "__main__":
@@ -256,20 +276,18 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 4 or (not sys.argv[1].startswith(("paragraph","document","doc2vec"))):
         print("\nUsage: python reading_assistant.py analysis_method read_docs_path unread_doc_src [k1] [b] \n"
-              "    ... analysis_method : can be 'paragraph', 'document', or 'doc2vec'\n"
+              "    ... analysis_level  : can be 'paragraph' or 'document'\n"
               "    ... read_docs_path  : path containing text files that have been read by the user\n"
               "    ... unread_doc_src  : file that is NOT YET read by the user\n"
-              "    ... [k1] (optional) : is the k1 value, when BM25 (paragraph, document) method used. Default: 1.2\n"
-              "    ... [b] (optional)  : is the b value, when BM25 (paragraph, document) method used. Default: 0.75\n\n"
+              "    ... [k1]            : is the k1 value for BM25. Default: 1.2\n"
+              "    ... [b] (optional)  : is the b value for BM25. Default: 0.75\n\n"
               )
 
     else:
         # tidy up some of the command line args
 
         # just add trailing "/" if necessary
-        arg_read_docs_path = sys.argv[2]
-        if (not arg_read_docs_path.endswith("/")):
-            arg_read_docs_path = arg_read_docs_path + "/"
+        arg_read_docs_path = os.path.join(sys.argv[2], '')
 
         # and set default values for k1 and b
         arg_k1 = 1.2
@@ -278,13 +296,18 @@ if __name__ == "__main__":
             arg_k1 = sys.argv[4]
             arg_b = sys.argv[5]
 
-        print("\nReading Assistant\n"
-              "  method: {}\n"
-              "    read: {}\n"
-              "  unread: {}\n"
-              "      k1: {}\n"
-              "       b: {}\n\n"
-              .format(sys.argv[1], arg_read_docs_path, sys.argv[3], arg_k1, arg_b))
+        outstr = "\nReading Assistant\n" \
+                 "  method: {}\n" \
+                 "    read: {}\n" \
+                 "  unread: {}\n".format(sys.argv[1], arg_read_docs_path, sys.argv[3])
+
+        if sys.argv[1] == "document" or sys.argv[1] == "paragraph":
+            outstr += "      k1: {}\n" \
+                      "       b: {}\n".format(arg_k1, arg_b)
+
+        outstr += "\n"
+
+        print (outstr)
 
         # call main with command line args
         main(sys.argv[1], arg_read_docs_path, sys.argv[3], arg_k1, arg_b)

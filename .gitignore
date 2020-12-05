@@ -1,0 +1,7 @@
+.git
+.git/
+.git/*
+.idea
+.idea/
+.idea/*
+__pycache__
