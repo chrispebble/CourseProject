@@ -4,6 +4,10 @@ import sys
 import math
 from gensimlsi import *
 
+# Allow use of raw_input on python3
+try: raw_input = input
+except NameError: pass
+
 class Document(object):
     def __init__(self, document_id, processed_text):
         """
@@ -38,6 +42,7 @@ class DocumentProcessor(object):
         """
         Loads a document given a document path to a text file
         """
+        # with open(self.document_path, encoding="utf8", errors='ignore') as f:
         with open(self.document_path, 'r') as f:
             self.unprocessed_text = f.read().split('\n')
             self.document_id = self.document_path.split("/")[-1]
