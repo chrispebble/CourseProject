@@ -237,6 +237,10 @@ class ReadingAssistant(object):
 
 
 def print_rankings(method, level, rankings):
+    # TODO
+    # use standard dev to find most similar documents, and how similar they are compared to the others
+    # print how similar, along with first couple sentences of each document
+
     for i in rankings.keys():
         print("---------------------\n")
         print(method, level, "ranking of", str(i))
@@ -249,29 +253,25 @@ def main(arg_level, arg_read_path, arg_k1, arg_b):
 
     reading_assistant.load_documents()
 
-    # BM25 rankings
-    #rankings = reading_assistant.score_document(arg_unread_doc, k1=arg_k1, b=arg_b)
-    
-
-    #print_rankings("BM25", arg_level, rankings)
-
-    
-    # LSI, but  ranking is only set up for document-level ranking right now
-    #if arg_level == "document":
-    #    lsi_rankings = gensim_lsi(arg_read_path, arg_unread_doc)
-    #    print_rankings("LSI", arg_level, lsi_rankings)
-
+    # user interaction code
     while True:
         n = raw_input("Please use one of the following commands:\n"
                        "[-nd path_to_document] --> Compares new document to previously-read documents\n"
                        "[exit] --> Exits the program\n")
+        
+        # exit command
         if n == 'exit': exit()
-        bm25_rankings = reading_assistant.score_document(n, k1=arg_k1, b=arg_b)
-        print_rankings("BM25", arg_level, bm25_rankings)
-        if arg_level == "document":
-            lsi_rankings = gensim_lsi(arg_read_path, n)
-            print_rankings("LSI", arg_level, lsi_rankings)
 
+        # new document command
+        if len(n) > 3 and n[0:3] == '-nd':
+            bm25_rankings = reading_assistant.score_document(n, k1=arg_k1, b=arg_b)
+            print_rankings("BM25", arg_level, bm25_rankings)
+            if arg_level == "document":
+                lsi_rankings = gensim_lsi(arg_read_path, n)
+                print_rankings("LSI", arg_level, lsi_rankings)
+        # view document command
+        # switch between paragraph and document (or provide both?) command
+        # add / remove document command
 if __name__ == "__main__":
     """
     Run from the command line, specifying level of analysis and path to read and unread documents.
