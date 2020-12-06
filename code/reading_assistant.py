@@ -41,7 +41,7 @@ class DocumentProcessor(object):
         with open(self.document_path, 'r') as f:
             self.unprocessed_text = f.read().split('\n')
             self.document_id = self.document_path.split("/")[-1]
-        print('Document ' + self.document_id + " loaded.")
+        #print('Document ' + self.document_id + " loaded.")
 
     def preprocess_document(self):
         """
@@ -58,7 +58,7 @@ class DocumentProcessor(object):
                     processed_sentence = [w for w in processed_sentence.split(" ") if len(w) > 0]
                     # self.document_length += len(processed_sentence)
                     self.processed_text.append(processed_sentence)
-            print('Document ' + self.document_id + ' processed.')
+           #print('Document ' + self.document_id + ' processed.')
 
             self.docs = [Document(self.document_id, self.processed_text)]
 
@@ -111,8 +111,8 @@ class InvertedIndex(object):
         new_total_length = (self.number_of_documents * self.average_document_length) + document.document_length
         self.number_of_documents += 1
         self.average_document_length = new_total_length / self.number_of_documents
-        print('Document ' + document.document_id + ' added to inverted index.')
-        print('Current read document count: ' + str(self.number_of_documents))
+        #print('Document ' + document.document_id + ' added to inverted index.')
+        #print('Current read document count: ' + str(self.number_of_documents))
 
     def remove_document(self, document):
         """
@@ -243,42 +243,44 @@ def print_rankings(method, level, rankings):
         print(rankings[i])
 
 
-def main(arg_level, arg_read_path, arg_unread_doc, arg_k1, arg_b):
+def main(arg_level, arg_read_path, arg_k1, arg_b):
 
     reading_assistant = ReadingAssistant(arg_read_path, level=arg_level)
 
     reading_assistant.load_documents()
 
     # BM25 rankings
-    rankings = reading_assistant.score_document(arg_unread_doc, k1=arg_k1, b=arg_b)
-    print_rankings("BM25", arg_level, rankings)
+    #rankings = reading_assistant.score_document(arg_unread_doc, k1=arg_k1, b=arg_b)
+    
 
-    # for i in rankings.keys():
-    #     print("---------------------\n")
-    #     print("[ BM25 ", arg_method, " ranking ] for ", str(i))
-    #     print(rankings[i])
+    #print_rankings("BM25", arg_level, rankings)
 
+    
     # LSI, but  ranking is only set up for document-level ranking right now
-    if arg_level == "document":
-        lsi_rankings = gensim_lsi(arg_read_path, arg_unread_doc)
-        print_rankings("LSI", arg_level, lsi_rankings)
+    #if arg_level == "document":
+    #    lsi_rankings = gensim_lsi(arg_read_path, arg_unread_doc)
+    #    print_rankings("LSI", arg_level, lsi_rankings)
 
-        # for i in lsi_rankings.keys():
-        #     print("---------------------\n")
-        #     print("[ LSI ", arg_method, " ranking ] for ", str(i))
-        #     print(lsi_rankings[i])
-
+    while True:
+        n = raw_input("Please use one of the following commands:\n"
+                       "[-nd path_to_document] --> Compares new document to previously-read documents\n"
+                       "[exit] --> Exits the program\n")
+        if n == 'exit': exit()
+        bm25_rankings = reading_assistant.score_document(n, k1=arg_k1, b=arg_b)
+        print_rankings("BM25", arg_level, bm25_rankings)
+        if arg_level == "document":
+            lsi_rankings = gensim_lsi(arg_read_path, n)
+            print_rankings("LSI", arg_level, lsi_rankings)
 
 if __name__ == "__main__":
     """
     Run from the command line, specifying level of analysis and path to read and unread documents.
     """
 
-    if len(sys.argv) < 4 or (not sys.argv[1].startswith(("paragraph","document","doc2vec"))):
+    if len(sys.argv) < 3 or (not sys.argv[1].startswith(("paragraph","document","doc2vec"))):
         print("\nUsage: python reading_assistant.py analysis_method read_docs_path unread_doc_src [k1] [b] \n"
               "    ... analysis_level  : can be 'paragraph' or 'document'\n"
               "    ... read_docs_path  : path containing text files that have been read by the user\n"
-              "    ... unread_doc_src  : file that is NOT YET read by the user\n"
               "    ... [k1]            : is the k1 value for BM25. Default: 1.2\n"
               "    ... [b] (optional)  : is the b value for BM25. Default: 0.75\n\n"
               )
@@ -292,14 +294,13 @@ if __name__ == "__main__":
         # and set default values for k1 and b
         arg_k1 = 1.2
         arg_b = 0.75
-        if len(sys.argv) == 6:
+        if len(sys.argv) == 5:
             arg_k1 = sys.argv[4]
             arg_b = sys.argv[5]
 
         outstr = "\nReading Assistant\n" \
                  "  method: {}\n" \
-                 "    read: {}\n" \
-                 "  unread: {}\n".format(sys.argv[1], arg_read_docs_path, sys.argv[3])
+                 "    read: {}\n".format(sys.argv[1], arg_read_docs_path)
 
         if sys.argv[1] == "document" or sys.argv[1] == "paragraph":
             outstr += "      k1: {}\n" \
@@ -307,7 +308,7 @@ if __name__ == "__main__":
 
         outstr += "\n"
 
-        print (outstr)
+        #print (outstr)
 
         # call main with command line args
-        main(sys.argv[1], arg_read_docs_path, sys.argv[3], arg_k1, arg_b)
+        main(sys.argv[1], arg_read_docs_path, arg_k1, arg_b)
