@@ -8,6 +8,13 @@ from gensimlsi import *
 try: raw_input = input
 except NameError: pass
 
+from os import listdir
+from os.path import isfile, join
+
+def list_files(mypath):
+    onlyfiles = [f for f in listdir(mypath) if (isfile(join(mypath, f)) and not f.startswith('.'))]
+    return onlyfiles
+
 class Document(object):
     def __init__(self, document_id, processed_text):
         """
@@ -42,8 +49,8 @@ class DocumentProcessor(object):
         """
         Loads a document given a document path to a text file
         """
-        # with open(self.document_path, encoding="utf8", errors='ignore') as f:
-        with open(self.document_path, 'r') as f:
+        with open(self.document_path, 'r', encoding="utf8", errors='ignore') as f:
+        # with open(self.document_path, 'r') as f:
             self.unprocessed_text = f.read().split('\n')
             self.document_id = self.document_path.split("/")[-1]
         #print('Document ' + self.document_id + " loaded.")
@@ -252,60 +259,117 @@ def print_rankings(method, level, rankings):
         print(rankings[i])
 
 
-def main(arg_level, arg_read_path, arg_k1, arg_b):
-
-    reading_assistant = ReadingAssistant(arg_read_path, level=arg_level)
-
-    reading_assistant.load_documents()
+def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
 
     # user interaction code
     while True:
+
+        print()
+        print("-= READ FILES: =-")
+        read_file_list = list_files(arg_read_path)
+        for i, f in enumerate(read_file_list):
+            print('{:>5} : {}'.format(i, f))
+
+        print("=- UN-READ FILES: -=")
+        unread_file_list = list_files(arg_unread_path)
+        for i, f in enumerate(unread_file_list):
+            print('{:>5} : {}'.format(i, f))
+
         n = raw_input("Please use one of the following commands:\n"
-                       "[-nd path_to_document] --> Compares new document to previously-read documents\n"
-                       "[exit] --> Exits the program\n")
+                       "  rank [unread_file_#] --> Compares new document to previously-read documents\n"
+                       "  read [unread_file_#] --> add the document from the unread list to the read list\n"
+                       "  forget [read_file_#] --> remove a document from the read list\n"
+                       "  exit                 --> Exits the program\n"
+                       "> ")
         
         # exit command
         if n == 'exit': exit()
 
-        # new document command
-        if len(n) > 3 and n[0:3] == '-nd':
-            bm25_rankings = reading_assistant.score_document(n, k1=arg_k1, b=arg_b)
-            print_rankings("BM25", arg_level, bm25_rankings)
-            if arg_level == "document":
-                lsi_rankings = gensim_lsi(arg_read_path, n)
-                print_rankings("LSI", arg_level, lsi_rankings)
-        # view document command
-        # switch between paragraph and document (or provide both?) command
-        # add / remove document command
+        try:
+
+            # new document command
+            if n.startswith('rank'):
+                target = os.path.join(arg_unread_path, unread_file_list[int(n[5:].strip())])
+
+                # because these algorithms are so fast, we can simple reload the models at each step
+                # however in a real-world application, we would optimize this code so that we were
+                # not starting from scratch each time
+
+                # initialize document-level bm25
+                doc_reading_assistant = ReadingAssistant(arg_read_path, level="document")
+                doc_reading_assistant.load_documents()
+                # do the BM25 document-level analysis
+                doc_bm25_rankings = doc_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
+                # initialize lsi + do the analysis
+                doc_lsi_rankings = gensim_lsi(arg_read_path, target)
+                # initialize paragraph-level bm25
+                parag_reading_assistant = ReadingAssistant(arg_read_path, level="paragraph")
+                parag_reading_assistant.load_documents()
+                # do the BM25 paragraph-level analysis
+                parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
+
+                # show the user
+                print_rankings("BM25", "document", doc_bm25_rankings)
+                print_rankings("LSI", "document", doc_lsi_rankings)
+                print_rankings("BM25", "paragraph", parag_bm25_rankings)
+
+            # add document to read list
+            elif n.startswith('read'):
+                target_file = unread_file_list[int(n[5:].strip())]
+                src_loc = os.path.join(arg_unread_path, target_file)
+                dst_loc = os.path.join(arg_read_path, target_file)
+                print('Over a delightful espresso you peruse {}.  What a good read!'.format(src_loc, dst_loc))
+                os.rename(src_loc, dst_loc)
+
+            # add document to read list
+            elif n.startswith('forget'):
+                target_file = read_file_list[int(n[7:].strip())]
+                src_loc = os.path.join(arg_read_path, target_file)
+                dst_loc = os.path.join(arg_unread_path, target_file )
+                print('You wander about, seeing glimpses of {} everywhere, but remembering nothing...'.format(src_loc))
+                os.rename(src_loc, dst_loc)
+
+            else:
+                print("...invalid command, try again")
+
+        except:
+            print("...sorry, you did something strange:\n".format(sys.exc_info()[0]))
+
+
 if __name__ == "__main__":
     """
     Run from the command line, specifying level of analysis and path to read and unread documents.
     """
+    # for a in enumerate(sys.argv):
+    #     print ('arg[{}]'.format(a[0]))
 
-    if len(sys.argv) < 3 or (not sys.argv[1].startswith(("paragraph","document","doc2vec"))):
-        print("\nUsage: python reading_assistant.py analysis_method read_docs_path unread_doc_src [k1] [b] \n"
-              "    ... analysis_level  : can be 'paragraph' or 'document'\n"
-              "    ... read_docs_path  : path containing text files that have been read by the user\n"
-              "    ... [k1]            : is the k1 value for BM25. Default: 1.2\n"
-              "    ... [b] (optional)  : is the b value for BM25. Default: 0.75\n\n"
+    if len(sys.argv) < 3:
+        print("\nUsage: python reading_assistant.py read_docs_path unread_docs_path [k1] [b] \n"
+              # "    ... analysis_level   : can be 'paragraph' or 'document'\n"
+              "    ... read_docs_path   : path containing text files that have been read by the user\n"
+              "    ... unread_docs_path : path containing text files that have been read by the user\n"              
+              "    ... [k1]             : is the k1 value for BM25. Default: 1.2\n"
+              "    ... [b] (optional)   : is the b value for BM25. Default: 0.75\n\n"
               )
 
     else:
         # tidy up some of the command line args
 
         # just add trailing "/" if necessary
-        arg_read_docs_path = os.path.join(sys.argv[2], '')
+        arg_read_path = os.path.join(sys.argv[1], '')
+        arg_unread_path = os.path.join(sys.argv[2], '')
 
         # and set default values for k1 and b
         arg_k1 = 1.2
         arg_b = 0.75
         if len(sys.argv) == 5:
-            arg_k1 = sys.argv[4]
-            arg_b = sys.argv[5]
+            arg_k1 = sys.argv[3]
+            arg_b = sys.argv[4]
 
         outstr = "\nReading Assistant\n" \
                  "  method: {}\n" \
-                 "    read: {}\n".format(sys.argv[1], arg_read_docs_path)
+                 "    read: {}\n" \
+                 "  unread: {}\n".format(sys.argv[1], arg_read_path, arg_unread_path)
 
         if sys.argv[1] == "document" or sys.argv[1] == "paragraph":
             outstr += "      k1: {}\n" \
@@ -316,4 +380,4 @@ if __name__ == "__main__":
         #print (outstr)
 
         # call main with command line args
-        main(sys.argv[1], arg_read_docs_path, arg_k1, arg_b)
+        main(arg_read_path=arg_read_path, arg_unread_path=arg_unread_path, arg_k1=arg_k1, arg_b=arg_b)
