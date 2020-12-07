@@ -261,6 +261,14 @@ def print_rankings(method, level, rankings):
 
 def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
 
+    # initialize document-level bm25
+    doc_reading_assistant = ReadingAssistant(arg_read_path, level="document")
+    doc_reading_assistant.load_documents()
+
+    # initialize paragraph-level bm25
+    parag_reading_assistant = ReadingAssistant(arg_read_path, level="paragraph")
+    parag_reading_assistant.load_documents()
+
     # user interaction code
     while True:
 
@@ -292,19 +300,20 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 target = os.path.join(arg_unread_path, unread_file_list[int(n[5:].strip())])
 
                 # because these algorithms are so fast, we can simple reload the models at each step
-                # however in a real-world application, we would optimize this code so that we were
-                # not starting from scratch each time
+                # however in a real-world application, we would use the add_document and remove_document
+                # method to avoid starting from scratch each time
 
                 # initialize document-level bm25
-                doc_reading_assistant = ReadingAssistant(arg_read_path, level="document")
-                doc_reading_assistant.load_documents()
+                # doc_reading_assistant = ReadingAssistant(arg_read_path, level="document")
+                # doc_reading_assistant.load_documents()
+
                 # do the BM25 document-level analysis
                 doc_bm25_rankings = doc_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
                 # initialize lsi + do the analysis
                 doc_lsi_rankings = gensim_lsi(arg_read_path, target)
-                # initialize paragraph-level bm25
-                parag_reading_assistant = ReadingAssistant(arg_read_path, level="paragraph")
-                parag_reading_assistant.load_documents()
+                # # initialize paragraph-level bm25
+                # parag_reading_assistant = ReadingAssistant(arg_read_path, level="paragraph")
+                # parag_reading_assistant.load_documents()
                 # do the BM25 paragraph-level analysis
                 parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
 
@@ -318,14 +327,21 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 target_file = unread_file_list[int(n[5:].strip())]
                 src_loc = os.path.join(arg_unread_path, target_file)
                 dst_loc = os.path.join(arg_read_path, target_file)
+                # remove from the inverted index (more efficient than recreating the entire index)
                 print('Over a delightful espresso you peruse {}.  What a good read!'.format(src_loc, dst_loc))
                 os.rename(src_loc, dst_loc)
+                # add to the inverted index (once it's in the read path)
+                doc_reading_assistant.add_document(src_loc)
+                parag_reading_assistant.add_document(src_loc)
 
             # add document to read list
             elif n.startswith('forget'):
                 target_file = read_file_list[int(n[7:].strip())]
                 src_loc = os.path.join(arg_read_path, target_file)
                 dst_loc = os.path.join(arg_unread_path, target_file )
+                # remove from the inverted index while still in the read path
+                doc_reading_assistant.remove_document(src_loc)
+                parag_reading_assistant.remove_document(src_loc)
                 print('You wander about, seeing glimpses of {} everywhere, but remembering nothing...'.format(src_loc))
                 os.rename(src_loc, dst_loc)
 
