@@ -298,25 +298,12 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
             # new document command
             if n.startswith('rank'):
                 target = os.path.join(arg_unread_path, unread_file_list[int(n[5:].strip())])
-
-                # because these algorithms are so fast, we can simple reload the models at each step
-                # however in a real-world application, we would use the add_document and remove_document
-                # method to avoid starting from scratch each time
-
-                # initialize document-level bm25
-                # doc_reading_assistant = ReadingAssistant(arg_read_path, level="document")
-                # doc_reading_assistant.load_documents()
-
                 # do the BM25 document-level analysis
                 doc_bm25_rankings = doc_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
                 # initialize lsi + do the analysis
                 doc_lsi_rankings = gensim_lsi(arg_read_path, target)
-                # # initialize paragraph-level bm25
-                # parag_reading_assistant = ReadingAssistant(arg_read_path, level="paragraph")
-                # parag_reading_assistant.load_documents()
                 # do the BM25 paragraph-level analysis
                 parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
-
                 # show the user
                 print_rankings("BM25", "document", doc_bm25_rankings)
                 print_rankings("LSI", "document", doc_lsi_rankings)
@@ -356,14 +343,11 @@ if __name__ == "__main__":
     """
     Run from the command line, specifying level of analysis and path to read and unread documents.
     """
-    # for a in enumerate(sys.argv):
-    #     print ('arg[{}]'.format(a[0]))
 
     if len(sys.argv) < 3:
         print("\nUsage: python reading_assistant.py read_docs_path unread_docs_path [k1] [b] \n"
-              # "    ... analysis_level   : can be 'paragraph' or 'document'\n"
               "    ... read_docs_path   : path containing text files that have been read by the user\n"
-              "    ... unread_docs_path : path containing text files that have been read by the user\n"              
+              "    ... unread_docs_path : path containing text files that have not been read by the user\n"              
               "    ... [k1]             : is the k1 value for BM25. Default: 1.2\n"
               "    ... [b] (optional)   : is the b value for BM25. Default: 0.75\n\n"
               )
@@ -383,13 +367,11 @@ if __name__ == "__main__":
             arg_b = sys.argv[4]
 
         outstr = "\nReading Assistant\n" \
-                 "  method: {}\n" \
                  "    read: {}\n" \
-                 "  unread: {}\n".format(sys.argv[1], arg_read_path, arg_unread_path)
+                 "  unread: {}\n".format(arg_read_path, arg_unread_path)
 
-        if sys.argv[1] == "document" or sys.argv[1] == "paragraph":
-            outstr += "      k1: {}\n" \
-                      "       b: {}\n".format(arg_k1, arg_b)
+        outstr += "      k1: {}\n" \
+                  "       b: {}\n".format(arg_k1, arg_b)
 
         outstr += "\n"
 
