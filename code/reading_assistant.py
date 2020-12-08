@@ -3,6 +3,7 @@ import os
 import sys
 import math
 from gensimlsi import *
+import numpy
 
 # Allow use of raw_input on python3
 try: raw_input = input
@@ -248,16 +249,15 @@ class ReadingAssistant(object):
         return max(0, math.log((numerator / denominator) + 1))
 
 
-def print_rankings(method, level, rankings):
-    # TODO
-    # use standard dev to find most similar documents, and how similar they are compared to the others
-    # print how similar, along with first couple sentences of each document
-
+def print_rankings(method, level, rankings,scope):
+    # right now only output documents with score of 2 * standard deviation
+       
     for i in rankings.keys():
         print("---------------------\n")
         print(method, level, "ranking of", str(i))
-        print(rankings[i])
-
+        mean = numpy.mean([x[1] for x in rankings[i]])
+        sd = numpy.std([x[1] for x in rankings[i]])
+        print([x for x in rankings[i] if x[1] > mean + (scope * sd)])
 
 def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
 
@@ -268,6 +268,9 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
     # initialize paragraph-level bm25
     parag_reading_assistant = ReadingAssistant(arg_read_path, level="paragraph")
     parag_reading_assistant.load_documents()
+
+    # scope (standard deviation) for ranking specificity
+    scope = 2
 
     # user interaction code
     while True:
@@ -287,6 +290,7 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                        "  rank [unread_file_#] --> Compares new document to previously-read documents\n"
                        "  read [unread_file_#] --> add the document from the unread list to the read list\n"
                        "  forget [read_file_#] --> remove a document from the read list\n"
+                       "  set scope [integer]  --> only documents above this number of standard deviations above mean ranking score are returned\n" 
                        "  exit                 --> Exits the program\n"
                        "> ")
         
@@ -305,9 +309,11 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 # do the BM25 paragraph-level analysis
                 parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
                 # show the user
-                print_rankings("BM25", "document", doc_bm25_rankings)
-                print_rankings("LSI", "document", doc_lsi_rankings)
-                print_rankings("BM25", "paragraph", parag_bm25_rankings)
+                print("========================================================================= Your Results =========================================================================") 
+                print_rankings("BM25", "document", doc_bm25_rankings,scope)
+                print_rankings("LSI", "document", doc_lsi_rankings,scope)
+                print_rankings("BM25", "paragraph", parag_bm25_rankings,scope)
+                print("================================================================================================================================================================")
 
             # add document to read list
             elif n.startswith('read'):
@@ -331,7 +337,12 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 parag_reading_assistant.remove_document(src_loc)
                 print('You wander about, seeing glimpses of {} everywhere, but remembering nothing...'.format(src_loc))
                 os.rename(src_loc, dst_loc)
-
+            elif n.startswith('set scope'):
+                # update standard deviation measure
+                new_scope = int(n[10:].strip())
+                scope = new_scope
+                print('Perhaps another perspective will help...')
+                
             else:
                 print("...invalid command, try again")
 
