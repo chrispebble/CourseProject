@@ -287,13 +287,15 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
             print('{:>5} : {}'.format(i, f))
 
         n = raw_input("Please use one of the following commands:\n"
-                       "  rank [unread_file_#] --> Compares new document to previously-read documents\n"
-                       "  read [unread_file_#] --> add the document from the unread list to the read list\n"
-                       "  forget [read_file_#] --> remove a document from the read list\n"
-                       "  set scope [integer]  --> only documents above this number of standard deviations above mean ranking score are returned\n" 
-                       "  exit                 --> Exits the program\n"
+                       "  rank [unread_file_#]   --> Compares new document to previously-read documents\n"
+                       "  read [unread_file_#]   --> add the document from the unread list to the read list\n"
+                       "  forget [read_file_#]   --> remove a document from the read list\n"
+                       "  view document [file_#] --> prints the document\n"
+                       "  set scope [integer]    --> only documents above this number of standard deviations above mean ranking score are returned\n" 
+                       "  exit                   --> Exits the program\n"
                        "> ")
-        
+        print()
+        print()
         # exit command
         if n == 'exit': exit()
 
@@ -342,7 +344,10 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 new_scope = int(n[10:].strip())
                 scope = new_scope
                 print('Perhaps another perspective will help...')
-                
+            elif n.startswith('view document'):
+            #    document_id = n[14:]
+            #    print(doc_reading_assistant
+                print('Sorry, Kevin is still figuring this out')
             else:
                 print("...invalid command, try again")
 
