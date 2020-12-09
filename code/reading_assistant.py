@@ -1,3 +1,4 @@
+
 import re
 import os
 import sys
@@ -76,19 +77,21 @@ class DocumentProcessor(object):
             self.docs = [Document(self.document_id, self.processed_text)]
 
         elif self.level == 'paragraph':
+        
             for idx, paragraph in enumerate(self.unprocessed_text):
                 document_id = self.document_id + '_pg' + str(idx)
-
-                text_by_sentence = paragraph.split('.')
+                 
+                text_by_sentence = [x for x in paragraph.split('.') if x is not []]
                 processed_paragraph = []
                 for sentence in text_by_sentence:
                     if len(sentence) > 2:
                         processed_sentence = re.sub("[^a-zA-Z -]+", "", sentence.lower().strip())
                         processed_sentence = [w for w in processed_sentence.split(" ") if len(w) > 0]
-                        processed_paragraph.append(processed_sentence)
+                        if len(processed_sentence) > 0:
+                            processed_paragraph.append(processed_sentence)
                 print('Paragraph ' + document_id + ' processed.')
                 if processed_paragraph:
-                    self.docs.append(Document(document_id, processed_paragraph))
+                     self.docs.append(Document(document_id, processed_paragraph))
 
     def get_docs(self):
         return self.docs
@@ -287,12 +290,13 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
             print('{:>5} : {}'.format(i, f))
 
         n = raw_input("Please use one of the following commands:\n"
-                       "  rank [unread_file_#]   --> Compares new document to previously-read documents\n"
-                       "  read [unread_file_#]   --> add the document from the unread list to the read list\n"
-                       "  forget [read_file_#]   --> remove a document from the read list\n"
-                       "  view document [file_#] --> prints the document\n"
-                       "  set scope [integer]    --> only documents above this number of standard deviations above mean ranking score are returned\n" 
-                       "  exit                   --> Exits the program\n"
+                       "  rank [unread_file_#]            --> Compares new document to previously-read documents\n"
+                       "  read [unread_file_#]            --> add the document from the unread list to the read list\n"
+                       "  forget [read_file_#]            --> remove a document from the read list\n"
+                       "  view document [document name]   --> prints the document\n"
+                       "  view paragraph [paragraph name] --> prints the paragraph\n"
+                       "  set scope [integer]             --> only documents above this number of standard deviations above mean ranking score are returned\n" 
+                       "  exit                            --> Exits the program\n"
                        "> ")
         print()
         print()
@@ -326,9 +330,8 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 print('Over a delightful espresso you peruse {}.  What a good read!'.format(src_loc, dst_loc))
                 os.rename(src_loc, dst_loc)
                 # add to the inverted index (once it's in the read path)
-                doc_reading_assistant.add_document(src_loc)
-                parag_reading_assistant.add_document(src_loc)
-
+                doc_reading_assistant.add_document(dst_loc)
+                parag_reading_assistant.add_document(dst_loc)
             # add document to read list
             elif n.startswith('forget'):
                 target_file = read_file_list[int(n[7:].strip())]
@@ -345,15 +348,26 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 scope = new_scope
                 print('Perhaps another perspective will help...')
             elif n.startswith('view document'):
-            #    document_id = n[14:]
-            #    print(doc_reading_assistant
-                print('Sorry, Kevin is still figuring this out')
+                document_id = n[14:]
+                print(document_id)
+                try:
+                    print([x.processed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id])
+                except:
+                    print('Document not found!')
+            elif n.startswith('view paragraph'):
+                paragraph_id = n[15:]
+                print(paragraph_id)
+                try:
+                    print([x.processed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id])
+                except:
+                    print('Paragraph not found!')
             else:
                 print("...invalid command, try again")
 
-        except:
+        except Exception as e:
             print("...sorry, you did something strange:\n".format(sys.exc_info()[0]))
-
+            print("Maybe this will give you a hint:\n")
+            print(e)
 
 if __name__ == "__main__":
     """
