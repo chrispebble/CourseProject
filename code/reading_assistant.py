@@ -356,18 +356,20 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 print('Perhaps another perspective will help...')
             elif n.startswith('view document'):
                 document_id = n[14:]
-                print(document_id)
-                try:
-                    print([x.processed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id])
-                except:
-                    print('Document not found!')
+                print('Viewing ' + document_id)
+                text = [x.processed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id]
+                if text:
+                    print(text)
+                else:
+                    print('Sorry, the document you requested was not found.')
             elif n.startswith('view paragraph'):
                 paragraph_id = n[15:]
-                print(paragraph_id)
-                try:
-                    print([x.processed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id])
-                except:
-                    print('Paragraph not found!')
+                print('Viewing ' + paragraph_id)
+                text = [x.processed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id]
+                if text:
+                    print(text)
+                else:
+                    print('Sorry, the paragraph you requested was not found.')
             else:
                 print("...invalid command, try again")
 
