@@ -92,7 +92,7 @@ class DocumentProcessor(object):
                         processed_sentence = [w for w in processed_sentence.split(" ") if len(w) > 0]
                         if len(processed_sentence) > 0:
                             processed_paragraph.append(processed_sentence)
-                print('Paragraph ' + document_id + ' processed.')
+                # print('Paragraph ' + document_id + ' processed.')
                 if processed_paragraph:
                      self.docs.append(Document(document_id, processed_paragraph))
                      idx += 1
@@ -322,10 +322,10 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 parag_lsi_rankings = gensim_lsi(arg_read_path, target, 'paragraph')
                 # show the user
                 print("========================================================================= Your Results =========================================================================") 
-                print_rankings("BM25", "document", doc_bm25_rankings,scope)
-                print_rankings("LSI", "document", doc_lsi_rankings,scope)
                 print_rankings("BM25", "paragraph", parag_bm25_rankings,scope)
                 print_rankings("LSI", "paragraph", parag_lsi_rankings,scope)
+                print_rankings("BM25", "document", doc_bm25_rankings, scope)
+                print_rankings("LSI", "document", doc_lsi_rankings, scope)
                 print("================================================================================================================================================================")
 
             # add document to read list
@@ -360,16 +360,17 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 try:
                     print([x.processed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id])
                 except:
-                    print('Document not found!')
+                    print('After sifting through the cluttered pile of of documents it is clear:', document_id, "can\'t be found.")
             elif n.startswith('view paragraph'):
                 paragraph_id = n[15:]
                 print(paragraph_id)
                 try:
                     print([x.processed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id])
                 except:
-                    print('Paragraph not found!')
+                    print('Paragraph after paragraph are searched, yet ', paragraph_id, "just isn\'t here.")
+                    # print('Paragraph not found!')
             else:
-                print("...invalid command, try again")
+                print("...you stare at the screen blankly, wondering why it it says \'invalid command.\'")
 
         except Exception as e:
             print("...sorry, you did something strange:\n".format(sys.exc_info()[0]))

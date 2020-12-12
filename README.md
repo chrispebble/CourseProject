@@ -205,23 +205,18 @@ requirements, and ensuring deadlines were met.
 
 References
 ==========
-<sup>1</sup> 
-https://github.com/meta-toolkit/metapy
+<sup>1</sup>https://github.com/meta-toolkit/metapy
 
-<sup>2</sup> 
-https://tac.nist.gov/2008/summarization/update.summ.08.guidelines.html
+<sup>2</sup>https://tac.nist.gov/2008/summarization/update.summ.08.guidelines.html
 
-<sup>3</sup> 
-Andrei V, Arandjelović O. Complex temporal topic evolution
+<sup>3</sup>Andrei V, Arandjelović O. Complex temporal topic evolution
 modelling using the Kullback-Leibler divergence and the Bhattacharyya distance.
 EURASIP J Bioinform Syst Biol. 2016 Sep 29;2016(1):16. doi:
 10.1186/s13637-016-0050-0. PMID: 27746813; PMCID: PMC5042987.
 
-<sup>4</sup> 
-Liu, Heng-Hui & Huang, Yi-Ting & Chiang, Jung-Hsien. (2010). A
+<sup>4</sup>Liu, Heng-Hui & Huang, Yi-Ting & Chiang, Jung-Hsien. (2010). A
 study on paragraph ranking and recommendation by topic information retrieval
 from biomedical literature. ICS 2010 - International Computer Symposium.
 10.1109/COMPSYM.2010.5685393.
 
-<sup>5</sup> 
-https://radimrehurek.com/gensim/models/lsimodel.html
+<sup>5</sup>https://radimrehurek.com/gensim/models/lsimodel.html
