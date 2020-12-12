@@ -35,7 +35,7 @@ class HTML_Generator:
             }
 
             .collapsible:after {
-              content: '\002B';
+              content: '\\002B';
               color: white;
               font-weight: bold;
               float: right;
@@ -43,7 +43,7 @@ class HTML_Generator:
             }
 
             .active:after {
-              content: "\2212";
+              content: "\\2212";
             }
 
             .content {
