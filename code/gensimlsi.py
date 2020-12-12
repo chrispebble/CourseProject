@@ -138,5 +138,9 @@ def gensim_lsi(arg_read_path, arg_unread_file, level='document'):
             elif level == 'paragraph':
                 ranking.append((read_paragraphs[i], doc_score))
 
+        # print(ranking)
+        # print("*** here ***")
         rankings[doc.name] = ranking
+        rankings[doc.name] = {'raw_txt': doc.name, 'ranking': ranking}
+
     return rankings
