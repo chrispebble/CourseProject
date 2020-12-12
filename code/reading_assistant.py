@@ -324,100 +324,100 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
         # exit command
         if n == 'exit': exit()
 
-        # try:
+        try:
+    
+            # new document command
+            if n.startswith('rank'):
+                target = os.path.join(arg_unread_path, unread_file_list[int(n[5:].strip())])
 
-        # new document command
-        if n.startswith('rank'):
-            target = os.path.join(arg_unread_path, unread_file_list[int(n[5:].strip())])
+                # do the BM25 document-level analysis
+                doc_bm25_rankings = doc_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
 
-            # do the BM25 document-level analysis
-            doc_bm25_rankings = doc_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
+                # initialize lsi + do the analysis
+                doc_lsi_rankings = gensim_lsi(arg_read_path, target, 'document')
 
-            # initialize lsi + do the analysis
-            doc_lsi_rankings = gensim_lsi(arg_read_path, target, 'document')
+                # do the BM25 paragraph-level analysis
+                parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
 
-            # do the BM25 paragraph-level analysis
-            parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
+                # do paragraph level lsi analysis
+                parag_lsi_rankings = gensim_lsi(arg_read_path, target, 'paragraph')
 
-            # do paragraph level lsi analysis
-            parag_lsi_rankings = gensim_lsi(arg_read_path, target, 'paragraph')
+                # show the user
+                print("========================================================================= Your Results =========================================================================")
+                print_rankings("BM25", "paragraph", parag_bm25_rankings, scope)
+                print_rankings("LSI", "paragraph", parag_lsi_rankings, scope)
+                print_rankings("BM25", "document", doc_bm25_rankings, scope)
+                print_rankings("LSI", "document", doc_lsi_rankings, scope)
+                print("================================================================================================================================================================")
 
-            # show the user
-            print("========================================================================= Your Results =========================================================================")
-            print_rankings("BM25", "paragraph", parag_bm25_rankings, scope)
-            print_rankings("LSI", "paragraph", parag_lsi_rankings, scope)
-            print_rankings("BM25", "document", doc_bm25_rankings, scope)
-            print_rankings("LSI", "document", doc_lsi_rankings, scope)
-            print("================================================================================================================================================================")
+                # output html file for more viewing
+                html_gen = HTML_Generator(outfile="output.html", name=target)
+                html_gen.add_divide("BM25 Document, >= " + str(scope) + " standard deviations")
+                write_html_rankings(doc_bm25_rankings, scope, html_gen, doc_reading_assistant)
+                html_gen.add_divide("BM25 Paragraph, >= " + str(scope) + " standard deviations")
+                write_html_rankings(parag_bm25_rankings, scope, html_gen, parag_reading_assistant)
+                html_gen.add_divide("LSI Document, >= " + str(scope) + " standard deviations")
+                write_html_rankings(doc_lsi_rankings, scope, html_gen, doc_reading_assistant)
+                html_gen.add_divide("LSI Paragraph, >= " + str(scope) + " standard deviations")
+                write_html_rankings(parag_lsi_rankings, scope, html_gen, parag_reading_assistant)
+                html_gen.write_file()
 
-            # output html file for more viewing
-            html_gen = HTML_Generator(outfile="output.html", name=target)
-            html_gen.add_divide("BM25 Document, >= " + str(scope) + " standard deviations")
-            write_html_rankings(doc_bm25_rankings, scope, html_gen, doc_reading_assistant)
-            html_gen.add_divide("BM25 Paragraph, >= " + str(scope) + " standard deviations")
-            write_html_rankings(parag_bm25_rankings, scope, html_gen, parag_reading_assistant)
-            html_gen.add_divide("LSI Document, >= " + str(scope) + " standard deviations")
-            write_html_rankings(doc_lsi_rankings, scope, html_gen, doc_reading_assistant)
-            html_gen.add_divide("LSI Paragraph, >= " + str(scope) + " standard deviations")
-            write_html_rankings(parag_lsi_rankings, scope, html_gen, parag_reading_assistant)
-            html_gen.write_file()
-
-        # add document to read list
-        elif n.startswith('read'):
-            target_file = unread_file_list[int(n[5:].strip())]
-            src_loc = os.path.join(arg_unread_path, target_file)
-            dst_loc = os.path.join(arg_read_path, target_file)
-            # remove from the inverted index (more efficient than recreating the entire index)
-            print('Over a delightful espresso you peruse {}.  What a good read!'.format(src_loc, dst_loc))
-            os.rename(src_loc, dst_loc)
-            # add to the inverted index (once it's in the read path)
-            doc_reading_assistant.add_document(dst_loc)
-            parag_reading_assistant.add_document(dst_loc)
-        # add document to read list
-        elif n.startswith('forget'):
-            target_file = read_file_list[int(n[7:].strip())]
-            src_loc = os.path.join(arg_read_path, target_file)
-            dst_loc = os.path.join(arg_unread_path, target_file )
-            # remove from the inverted index while still in the read path
-            doc_reading_assistant.remove_document(src_loc)
-            parag_reading_assistant.remove_document(src_loc)
-            print('You wander about, seeing glimpses of {} everywhere, but remembering nothing...'.format(src_loc))
-            os.rename(src_loc, dst_loc)
-        elif n.startswith('set scope'):
-            # update standard deviation measure
-            new_scope = int(n[10:].strip())
-            scope = new_scope
-            print('Perhaps another perspective will help...')
-        elif n.startswith('view document'):
-            document_id = n[14:]
-            print('Good idea, let\'s take a look at ' + document_id)
-            text = [x.processed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id]
-            raw_text = [x.unprocessed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id]
-            if text:
-                print(raw_text)
-                print(text)
+            # add document to read list
+            elif n.startswith('read'):
+                target_file = unread_file_list[int(n[5:].strip())]
+                src_loc = os.path.join(arg_unread_path, target_file)
+                dst_loc = os.path.join(arg_read_path, target_file)
+                # remove from the inverted index (more efficient than recreating the entire index)
+                print('Over a delightful espresso you peruse {}.  What a good read!'.format(src_loc, dst_loc))
+                os.rename(src_loc, dst_loc)
+                # add to the inverted index (once it's in the read path)
+                doc_reading_assistant.add_document(dst_loc)
+                parag_reading_assistant.add_document(dst_loc)
+            # add document to read list
+            elif n.startswith('forget'):
+                target_file = read_file_list[int(n[7:].strip())]
+                src_loc = os.path.join(arg_read_path, target_file)
+                dst_loc = os.path.join(arg_unread_path, target_file )
+                # remove from the inverted index while still in the read path
+                doc_reading_assistant.remove_document(src_loc)
+                parag_reading_assistant.remove_document(src_loc)
+                print('You wander about, seeing glimpses of {} everywhere, but remembering nothing...'.format(src_loc))
+                os.rename(src_loc, dst_loc)
+            elif n.startswith('set scope'):
+                # update standard deviation measure
+                new_scope = int(n[10:].strip())
+                scope = new_scope
+                print('Perhaps another perspective will help...')
+            elif n.startswith('view document'):
+                document_id = n[14:]
+                print('Good idea, let\'s take a look at ' + document_id)
+                text = [x.processed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id]
+                raw_text = [x.unprocessed_text for x in doc_reading_assistant.read_document_list if x.document_id == document_id]
+                if text:
+                    print(raw_text)
+                    print(text)
+                else:
+                    print('After sifting through the cluttered pile of of documents it is clear:', document_id,
+                          "can\'t be found.")
+                    # print('Sorry, the document you requested was not found.')
+            elif n.startswith('view paragraph'):
+                paragraph_id = n[15:]
+                print('Well now I am intrigued, what is so great about paragraph', paragraph_id, "?")
+                text = [x.processed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id]
+                raw_text = [x.unprocessed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id]
+                if text:
+                    print(raw_text)
+                    print(text)
+                else:
+                    print('Paragraph after paragraph are searched, yet ', paragraph_id, "just isn\'t here.")
+                    # print('Sorry, the paragraph you requested was not found.')
             else:
-                print('After sifting through the cluttered pile of of documents it is clear:', document_id,
-                      "can\'t be found.")
-                # print('Sorry, the document you requested was not found.')
-        elif n.startswith('view paragraph'):
-            paragraph_id = n[15:]
-            print('Well now I am intrigued, what is so great about paragraph', paragraph_id, "?")
-            text = [x.processed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id]
-            raw_text = [x.unprocessed_text for x in parag_reading_assistant.read_document_list if x.document_id == paragraph_id]
-            if text:
-                print(raw_text)
-                print(text)
-            else:
-                print('Paragraph after paragraph are searched, yet ', paragraph_id, "just isn\'t here.")
-                # print('Sorry, the paragraph you requested was not found.')
-        else:
-            print("...you stare at the screen blankly, wondering why it it says \'invalid command.\'")
+                print("...you stare at the screen blankly, wondering why it it says \'invalid command.\'")
 
-        # except Exception as e:
-        #     print("...sorry, you did something strange:\n".format(sys.exc_info()[0]))
-        #     print("Maybe this will give you a hint:\n")
-        #     print(e)
+        except Exception as e:
+            print("...sorry, you did something strange:\n".format(sys.exc_info()[0]))
+            print("Maybe this will give you a hint:\n")
+            print(e)
 
 if __name__ == "__main__":
     """
