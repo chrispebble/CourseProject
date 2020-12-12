@@ -41,10 +41,9 @@ class ReadTxtFiles(object):
                 paragreraph_idx = 0
                 for line in self.doc:
                     if (len(line.strip()) == 0):
-                        paragreraph_idx += 1  # remove this if needed, counting blank line as a paragraph is really not meaningful
                         continue  # skip blank lines
                     yield ListOfWords(simple_preprocess(remove_stopwords(line), deacc=True))
-                    read_paragraphs.append("{}_para{}".format(fname, str(paragreraph_idx)))
+                    read_paragraphs.append("{}_pg{}".format(fname, str(paragreraph_idx)))
                     paragreraph_idx += 1
 
 class ListOfUnreadWords(object):
@@ -76,9 +75,8 @@ class ReadUnreadTxtFiles(object):
 
             for line in self.doc:
                 if (len(line.strip()) == 0):
-                    paragreraph_idx += 1
                     continue  # skip blank lines
-                name = "{}_para{}".format(self.fname.split("/")[-1], str(paragreraph_idx))
+                name = "{}_pg{}".format(self.fname.split("/")[-1], str(paragreraph_idx))
                 yield ListOfUnreadWords(simple_preprocess(remove_stopwords(line), deacc=True), name)
                 paragreraph_idx += 1
 

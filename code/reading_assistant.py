@@ -26,6 +26,9 @@ class Document(object):
         self.processed_text = processed_text  # list of sentences
         self.document_length = sum([len(sentence) for sentence in self.processed_text])
 
+    def __str__(self):
+        return "{} {} {}".format(self.document_id, self.processed_text, self.document_length)
+
 
 class DocumentProcessor(object):
     """
@@ -77,8 +80,8 @@ class DocumentProcessor(object):
             self.docs = [Document(self.document_id, self.processed_text)]
 
         elif self.level == 'paragraph':
-        
-            for idx, paragraph in enumerate(self.unprocessed_text):
+            idx = 0
+            for paragraph in self.unprocessed_text:
                 document_id = self.document_id + '_pg' + str(idx)
                  
                 text_by_sentence = [x for x in paragraph.split('.') if x is not []]
@@ -92,6 +95,7 @@ class DocumentProcessor(object):
                 print('Paragraph ' + document_id + ' processed.')
                 if processed_paragraph:
                      self.docs.append(Document(document_id, processed_paragraph))
+                     idx += 1
 
     def get_docs(self):
         return self.docs
