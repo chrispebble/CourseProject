@@ -311,14 +311,17 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 # do the BM25 document-level analysis
                 doc_bm25_rankings = doc_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
                 # initialize lsi + do the analysis
-                doc_lsi_rankings = gensim_lsi(arg_read_path, target)
+                doc_lsi_rankings = gensim_lsi(arg_read_path, target, 'document')
                 # do the BM25 paragraph-level analysis
                 parag_bm25_rankings = parag_reading_assistant.score_document(target, k1=arg_k1, b=arg_b)
+                # do paragraph level lsi analysis
+                parag_lsi_rankings = gensim_lsi(arg_read_path, target, 'paragraph')
                 # show the user
                 print("========================================================================= Your Results =========================================================================") 
                 print_rankings("BM25", "document", doc_bm25_rankings,scope)
                 print_rankings("LSI", "document", doc_lsi_rankings,scope)
                 print_rankings("BM25", "paragraph", parag_bm25_rankings,scope)
+                print_rankings("LSI", "paragraph", parag_lsi_rankings,scope)
                 print("================================================================================================================================================================")
 
             # add document to read list

@@ -12,51 +12,84 @@ import logging
 
 # contains the names of the read files, for reference later.
 read_files = []
+read_paragraphs = []
 
 class ListOfWords(object):
-    def __init__(self, path):
-        self.doc = smart_open(path, encoding='latin')
-        self.list = []
-        for line in self.doc:
-            if (len(line.strip()) == 0):
-                continue  # skip blank lines
-            self.list = self.list + simple_preprocess(remove_stopwords(line), deacc=True)
+     def __init__(self, list_of_words):
+        self.list = list_of_words
 
 class ReadTxtFiles(object):
-    def __init__(self, dirname):
+    def __init__(self, dirname, level='document'):
         self.dirname = dirname
+        self.level = level
 
     def __iter__(self):
         for fname in os.listdir(self.dirname):
+            print(fname)
+            path = os.path.join(self.dirname, fname)
+            self.doc = smart_open(path, encoding='latin')
             read_files.append(fname)
-            yield ListOfWords(os.path.join(self.dirname, fname))
+
+            if self.level == 'document':
+                self.list = []
+                for line in self.doc:
+                    if (len(line.strip()) == 0):
+                        continue  # skip blank lines
+                    self.list = self.list + simple_preprocess(remove_stopwords(line), deacc=True)
+                yield ListOfWords(self.list)
+
+            elif self.level == 'paragraph':
+                paragreraph_idx = 0
+                for line in self.doc:
+                    if (len(line.strip()) == 0):
+                        paragreraph_idx += 1  # remove this if needed, counting blank line as a paragraph is really not meaningful
+                        continue  # skip blank lines
+                    yield ListOfWords(simple_preprocess(remove_stopwords(line), deacc=True))
+                    read_paragraphs.append("{}_para{}".format(fname, str(paragreraph_idx)))
+                    paragreraph_idx += 1
 
 class ListOfUnreadWords(object):
-    def __init__(self, path):
-        self.doc = smart_open(path, encoding='latin')
-        self.word_list = []
-        for line in self.doc:
-            if (len(line.strip()) == 0):
-                continue  # skip blank lines
-            self.word_list = self.word_list + simple_preprocess(remove_stopwords(line), deacc=True)
-        self.name = path.split("/")[-1]
+    def __init__(self, list_of_wrods, name):
+        self.word_list = list_of_wrods
+        self.name = name
 
 class ReadUnreadTxtFiles(object):
-    def __init__(self, fname):
+    def __init__(self, fname, level='document'):
         self.fname = fname
+        self.level = level
 
     def __iter__(self):
         # iterator isn't really needed, left over from when this pointed to a directory rather than a file
         # for fname in os.listdir(self.dirname):
-        yield ListOfUnreadWords(self.fname)
+        self.doc = smart_open(self.fname, encoding='latin')
 
-def gensim_lsi(arg_read_path, arg_unread_file):
+        if self.level == 'document':
+            self.word_list = []  # list of all words in the doc
+            for line in self.doc:
+                if (len(line.strip()) == 0):
+                    continue  # skip blank lines
+                self.word_list = self.word_list + simple_preprocess(remove_stopwords(line), deacc=True)
+            name = self.fname.split("/")[-1]
+            yield ListOfUnreadWords(self.word_list, name)
+        elif self.level == 'paragraph':
+            self.word_list = []  # list of all words in the doc
+            paragreraph_idx  = 0
 
-    list_of_list_of_words = ReadTxtFiles(arg_read_path)
-    list_of_list_of_unread_docs = ReadUnreadTxtFiles(arg_unread_file)
+            for line in self.doc:
+                if (len(line.strip()) == 0):
+                    paragreraph_idx += 1
+                    continue  # skip blank lines
+                name = "{}_para{}".format(self.fname.split("/")[-1], str(paragreraph_idx))
+                yield ListOfUnreadWords(simple_preprocess(remove_stopwords(line), deacc=True), name)
+                paragreraph_idx += 1
+
+def gensim_lsi(arg_read_path, arg_unread_file, level='document'):
+
+    list_of_list_of_words = ReadTxtFiles(arg_read_path, level)
+    list_of_list_of_unread_docs = ReadUnreadTxtFiles(arg_unread_file, level)
 
     texts = []
-    for doc in list_of_list_of_words:
+    for doc in list_of_list_of_words:  # each doc is a ListOfWords: list of all words for that doc/paragraph
         texts.append(doc.list)
 
     # remove words that appear only once
@@ -84,6 +117,7 @@ def gensim_lsi(arg_read_path, arg_unread_file):
     ### Now we have the model.  We need to query it with the unread documents.
 
     # this iterates, but for our purposes, this is always just one document...
+    rankings = {}
     for doc in list_of_list_of_unread_docs:
         print("unread document = ", doc.name.upper())
 
@@ -102,8 +136,10 @@ def gensim_lsi(arg_read_path, arg_unread_file):
         # create the ranking array
         ranking = []
         for i, doc_score in sims:
-            ranking.append((read_files[i], doc_score))
+            if level == 'document':
+                ranking.append((read_files[i], doc_score))
+            elif level == 'paragraph':
+                ranking.append((read_paragraphs[i], doc_score))
 
-        rankings = {}
         rankings[doc.name] = ranking
-        return rankings
+    return rankings
