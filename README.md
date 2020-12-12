@@ -139,10 +139,15 @@ and *Un-Read* documents. For example, you may see the following:
     0 : covid-bhc-contact-sop-2.txt
     1 : covid-annex-1.txt
 Please use one of the following commands:
-  rank [unread_file_#] --> Compares new document to previously-read documents
-  read [unread_file_#] --> add the document from the unread list to the read list
-  forget [read_file_#] --> remove a document from the read list
-  exit                 --> Exits the program
+  rank [unread_file_#]            --> Compares new document to previously-read documents
+  read [unread_file_#]            --> add the document from the unread list to the read list
+  forget [read_file_#]            --> remove a document from the read list
+  view document [document name]   --> prints the document
+  view paragraph [paragraph name] --> prints the paragraph
+  set scope [integer]             --> only documents above this number of standard deviations above mean ranking score are returned
+  exit                            --> Exits the program
+
+
 ```
 
 To see the rank of the unread document **covid-annex-1.txt** you would
@@ -153,6 +158,20 @@ read* grouping, type `read 0`.
 
 Or, to move document **covid-fragord.txt** from *read* to *unread*,
 type `forget 9`.
+
+To view the text of document **covid-yoko-sop.txt**,
+type 'view document covid-yoko-sop.txt'.
+
+Similarly, to view the first paragraph of document **covid-yoko-sop.txt**,
+type 'view paragraph covid-yoko-sop.txt_parag0'.
+
+The 'set scope [integer]' command determines scope of the ranking results. As each document
+and paragraph in READ DOCUMENTS is given a ranking score, the [integer] determines the cut-off
+of these scores. More specifically, the [integer] is the number of standard deviations above the mean
+ranking score. That is, a scope of 2 means that only documents and paragraphs that are two or more
+standard deviations above the mean score are returned. A scope of 0 means that all documents and paragraphs
+above the mean ranking score are returned. Generally, a higher scope means fewer documents and paragraphs
+returned, but these documents and paragraphs are much more relevant. 
 
 
 
