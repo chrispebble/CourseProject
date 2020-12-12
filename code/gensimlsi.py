@@ -25,7 +25,6 @@ class ReadTxtFiles(object):
 
     def __iter__(self):
         for fname in os.listdir(self.dirname):
-            print(fname)
             path = os.path.join(self.dirname, fname)
             self.doc = smart_open(path, encoding='latin')
             read_files.append(fname)
