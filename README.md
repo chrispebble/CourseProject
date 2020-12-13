@@ -52,7 +52,12 @@ In line with our project proposal, our overall goal was to create a reading
 assistant tool that allows a user to maintain a collection of *read* documents (
 reflecting the current knowledge of the user)
 and then provides insight about a new *unread* document when compared to the all
-read documents. Our initial idea from the project proposal was to focus on the
+read documents. The output includes:
+
+- A ranked list of documents that are most similar to the unread document based on BM25 scores and LSI similarity scores, respectively. 
+- A ranked list of paragraphs that are most similar to each paragraph of the unread document based on BM25 scores and LSI similarity scores, respectively.
+
+Our initial idea from the project proposal was to focus on the
 differences between documents, however the reality is that there were so many
 ways documents could be different that this was not particularly helpful. In
 this final version we instead focus on the areas of similarity betwen the unread
@@ -75,26 +80,48 @@ of particular interest.
 Implementation
 ==============
 On start-up, text documents (directory path provided by user) are loaded by the
-assistant. During loading, the documents are processed and added to an inverted
-index. These documents are considered to be the previously-read documents by the
-user. Once the loading is complete, the assistant waits for a path to a text
-file (unseen document). Given this path, the assistant ranks the previously-read
-documents using the unseen document and returns the most similar read document
-names to the user. We also provided methods for a user to add and remove
-previously-read documents. Currently, the assistant calculates similarity using
-the Okapi BM25 ranking function along with various optimization techniques,
-including an inverted index. To heuristically gauge the effectiveness of this
+assistant. During loading, the documents are processed (remove non-ascii characters,
+blank lines, etc) and added to an inverted Index. These documents are considered
+to be the previously-read documents by the user. Once the loading is complete, 
+the assistant waits for a path to a text file (unseen document). Given this path,
+the assistant ranks the previously-read documents using the unseen document and
+returns the most similar read document and paragraph names to the user. We also 
+provided methods for a user to view, add and remove previously-read documents.
+
+Currently, the assistant calculates similarity scores using two approaches: 
+Okapi BM25 and Latent Semantic Indexing (LSI) similarity.
+
+To implement the Okapi BM25 ranking function, first an inverted index is built 
+based on the previously-read documents. From there, it calculates the term frequency, 
+inverse document frequency, and document length normalization. Finally, the 
+similarity score for each document is calculated and scores are sorted in 
+descending order. In addition to document-level BM-25, we also implemented 
+paragraph-level BM25, which follows a similar approach but considers each 
+paragraph of the document as an individual “document”. This allows more 
+detailed evaluation of unseen documents.
+
+To implement LSI similarity ranking function, we utilized the external gensim library. This is 
+currently in a separate script (gensimlsi.py) and is integrated to the reading 
+assistant. During document pre-processing, it removes stop words, blank lines, 
+and words that only appeared once in the document to achieve better topic discovery. 
+It first transforms the previously-read documents to Tf-Idf vectors. It then builds an 
+LSI model with 200 (default) topics. Note that if the number of read documents 
+is less than 200 then the number of read documents will be used. This LSI model 
+will discover topics based on all the previously-read documents, and map the document vectors
+to LSI space, i.e. describe how strongly each document is related to each topic.
+Upon receiving the unseen document specified by the user, it will transform the
+document into LSI space and compute the cosine similarity. The scores will then
+be sorted in descending order. Similarly, we also implemented paragraph level 
+analysis for LSI similarity.
+
+To heuristically gauge the effectiveness of this
 method, each team member collected approximately 8-10 documents. These documents
 were loaded as the previously-read documents, and additional documents were
 provided as the unseen documents. From the preliminary examination, the results
 seem promising. The code is written in a modular fashion, so that we can easily
 extend the assistant to use different similarity/difference measures and
-methods. In addition to document-level BM-25, we have implemented
-paragraph-level BM25 which allows more detailed evaluation of unseen documents
-compared to seen documents. We have also used the external library gensim to
-include Latent Semantic Indexing at a document level, with document- level
-similarity. This is currently a separate script and will be integrated for the
-final project. Our planned extensions are discussed in the following section.
+methods
+
 
 Usage
 =====
@@ -151,7 +178,9 @@ Please use one of the following commands:
 ```
 
 To see the rank of the unread document **covid-annex-1.txt** you would
-enter `rank 1` at the prompt.
+enter `rank 1` at the prompt. An "output.html" will also be generated 
+in the directory where the command is issued. It contains the same info 
+as the console output and provides a better visual representation.
 
 To move a document **covid-bhc-contact-sop-2.txt** from the *unread* into the *
 read* grouping, type `read 0`.
@@ -174,7 +203,6 @@ ranking score. That is, a scope of 2 means that only documents and paragraphs th
 standard deviations above the mean score are returned. A scope of 0 means that all documents and paragraphs
 above the mean ranking score are returned. Generally, a higher scope means fewer documents and paragraphs
 returned, but these documents and paragraphs are much more relevant. 
-
 
 
 Team Contributions
@@ -223,6 +251,7 @@ requirements, and ensuring deadlines were met.
 
 - Added gensim LSI ranking methods
 - Added CLI and finalized REPL
+- Added HTML generator for better visual representation of results
 
 References
 ==========
