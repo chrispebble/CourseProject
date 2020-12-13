@@ -121,7 +121,7 @@ class HTML_Generator:
 
         self.write_it(outstr, "a")
         
-        print("\nDropping your pen and rubbing your temples, you look over", self.outfile, "and smile knowing the analysis is done.  ")
+        #print("\nDropping your pen and rubbing your temples, you look over", self.outfile, "and smile knowing the analysis is done.  ")
 
 
 
