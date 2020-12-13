@@ -5,3 +5,6 @@
 .idea/
 .idea/*
 __pycache__
+output.html
+output-bm25.html
+output-lsi.html
