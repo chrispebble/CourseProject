@@ -52,7 +52,12 @@ In line with our project proposal, our overall goal was to create a reading
 assistant tool that allows a user to maintain a collection of *read* documents (
 reflecting the current knowledge of the user)
 and then provides insight about a new *unread* document when compared to the all
-read documents. Our initial idea from the project proposal was to focus on the
+read documents. The output includes:
+
+- A ranked list of documents that are most similar to the unread document based on BM25 scores and LSI similarity scores, respectively. 
+- A ranked list of paragraphs that are most similar to each paragraph of the unread document based on BM25 scores and LSI similarity scores, respectively.
+
+Our initial idea from the project proposal was to focus on the
 differences between documents, however the reality is that there were so many
 ways documents could be different that this was not particularly helpful. In
 this final version we instead focus on the areas of similarity betwen the unread
@@ -245,6 +250,7 @@ requirements, and ensuring deadlines were met.
 
 - Added gensim LSI ranking methods
 - Added CLI and finalized REPL
+- Added HTML generator for better visual representation of results
 
 References
 ==========
