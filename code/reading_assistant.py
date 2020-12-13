@@ -184,17 +184,18 @@ class ReadingAssistant(object):
 
     def remove_document(self, document_path):
         """
-        Removes document from read collection, assumes path contains id
+        Removes document and associated paragraphs from read collection, assumes path contains id
         """
         doc_id = document_path.split("/")[-1]
-        removed_index = None
+
+        removed_index = []
         for i, doc in enumerate(self.read_document_list):
-            if doc.document_id == doc_id:
+            if doc.document_id == doc_id or "{}_pg".format(doc_id) in doc.document_id:
                 self.inv_idx.remove_document(doc)
-                removed_index = i
-                break
+                removed_index.append(i)
         if removed_index:
-            del self.read_document_list[removed_index]
+            for r in sorted(removed_index, reverse=True): # so that indexes of the rest do not change after deleting the first one
+                del self.read_document_list[r]
 
     def load_documents(self):
         """
@@ -370,7 +371,7 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 write_html_rankings(parag_lsi_rankings, scope, html_gen)
                 html_gen.close_file()
 
-                print("\nDropping your pen and rubbing your temples, you look over", self.outfile, "and smile knowing the analysis is done.  ")
+                print("\nDropping your pen and rubbing your temples, you look over output-bm25.html and output-lsi.html, and smile knowing the analysis is done.  ")
 
 
             # add document to read list
