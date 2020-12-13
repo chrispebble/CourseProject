@@ -370,8 +370,6 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 write_html_rankings(parag_lsi_rankings, scope, html_gen)
                 html_gen.close_file()
 
-                print("\nDropping your pen and rubbing your temples, you look over", self.outfile, "and smile knowing the analysis is done.  ")
-
 
             # add document to read list
             elif n.startswith('read'):
