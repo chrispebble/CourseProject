@@ -1,6 +1,5 @@
-
 import re
-import os
+# import os
 import sys
 import math
 from gensimlsi import *
@@ -228,10 +227,11 @@ class ReadingAssistant(object):
                         denominator = tf + (
                                     k1 * (1 - b + (b * (doc.document_length / self.inv_idx.average_document_length))))
                         doc_score += idf * (numerator / denominator)
-                ranking.append((doc.document_id, doc_score))
-            # rankings[new_document.document_id] = sorted(ranking, key=lambda x: x[1], reverse=True)
+                raw_txt = "\n".join(doc.unprocessed_text) if isinstance(doc.unprocessed_text, list) else doc.unprocessed_text
+                ranking.append((doc.document_id, doc_score, raw_txt))
             rankings[new_document.document_id] = {}
-            rankings[new_document.document_id]['raw_txt'] = new_document.unprocessed_text
+            raw_txt = "\n".join(new_document.unprocessed_text) if isinstance(doc.unprocessed_text, list) else new_document.unprocessed_text
+            rankings[new_document.document_id]['raw_txt'] = raw_txt
             rankings[new_document.document_id]['processed_txt'] = new_document.processed_text
             rankings[new_document.document_id]['ranking'] = sorted(ranking, key=lambda x: x[1], reverse=True)
         return rankings
@@ -259,14 +259,22 @@ class ReadingAssistant(object):
         return max(0, math.log((numerator / denominator) + 1))
 
 def print_rankings(method, level, rankings, scope):
+    """
+    Prints a rankings dict to the console
+    """
     for i in rankings.keys():
         print("---------------------\n")
         print(method, level, "ranking of", str(i))
         mean = numpy.mean([x[1] for x in rankings[i]['ranking']])
         sd = numpy.std([x[1] for x in rankings[i]['ranking']])
-        print([x for x in rankings[i]['ranking'] if x[1] > mean + (scope * sd)])
+        for x in rankings[i]['ranking']:
+            if x[1] > (mean + (scope * sd)):
+                print('   {:<23}{:50}'.format(x[1], x[0]))
 
-def write_html_rankings(rankings, scope, html, doc_reading_assistant):
+def write_html_rankings(rankings, scope, html):
+    """
+    Writes the rankings info to an HMTL file for easier perusal
+    """
     for i in rankings.keys():
         mean = numpy.mean([x[1] for x in rankings[i]['ranking']])
         sd = numpy.std([x[1] for x in rankings[i]['ranking']])
@@ -277,11 +285,7 @@ def write_html_rankings(rankings, scope, html, doc_reading_assistant):
             html.add_text(rankings[i]['raw_txt'])
         for x in rankings[i]['ranking']:
             if x[1] > mean + (scope * sd):
-                unprocessed_text = [d.unprocessed_text for d in doc_reading_assistant.read_document_list if d.document_id == x[0]]
-                if isinstance(unprocessed_text, list):
-                    html.add_match(match_name=x[0], match_score=x[1], match_text="<br><br>".join(str(v) for v in unprocessed_text))
-                else:
-                    html.add_match(match_name=x[0], match_score=x[1], match_text=unprocessed_text)
+                html.add_match(match_name=x[0], match_score=x[1], match_text=x[2])
 
 def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
 
@@ -325,7 +329,7 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
         if n == 'exit': exit()
 
         try:
-    
+
             # new document command
             if n.startswith('rank'):
                 target = os.path.join(arg_unread_path, unread_file_list[int(n[5:].strip())])
@@ -350,17 +354,24 @@ def main(arg_read_path, arg_unread_path, arg_k1, arg_b):
                 print_rankings("LSI", "document", doc_lsi_rankings, scope)
                 print("================================================================================================================================================================")
 
-                # output html file for more viewing
-                html_gen = HTML_Generator(outfile="output.html", name=target)
+                # output BM25 html file for more viewing
+                html_gen = HTML_Generator(outfile="output-bm25.html", name=target)
                 html_gen.add_divide("BM25 Document, >= " + str(scope) + " standard deviations")
-                write_html_rankings(doc_bm25_rankings, scope, html_gen, doc_reading_assistant)
+                write_html_rankings(doc_bm25_rankings, scope, html_gen)
                 html_gen.add_divide("BM25 Paragraph, >= " + str(scope) + " standard deviations")
-                write_html_rankings(parag_bm25_rankings, scope, html_gen, parag_reading_assistant)
+                write_html_rankings(parag_bm25_rankings, scope, html_gen)
+                html_gen.close_file()
+
+                # output LSI html file for more viewing
+                html_gen = HTML_Generator(outfile="output-lsi.html", name=target)
                 html_gen.add_divide("LSI Document, >= " + str(scope) + " standard deviations")
-                write_html_rankings(doc_lsi_rankings, scope, html_gen, doc_reading_assistant)
+                write_html_rankings(doc_lsi_rankings, scope, html_gen)
                 html_gen.add_divide("LSI Paragraph, >= " + str(scope) + " standard deviations")
-                write_html_rankings(parag_lsi_rankings, scope, html_gen, parag_reading_assistant)
-                html_gen.write_file()
+                write_html_rankings(parag_lsi_rankings, scope, html_gen)
+                html_gen.close_file()
+
+                print("\nDropping your pen and rubbing your temples, you look over", self.outfile, "and smile knowing the analysis is done.  ")
+
 
             # add document to read list
             elif n.startswith('read'):

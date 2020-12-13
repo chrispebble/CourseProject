@@ -10,9 +10,15 @@ from gensim import similarities
 import logging
 # logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-# contains the names of the read files, for reference later.
-read_files = []
+# contains the names of the files, and corresponding text, for reference later.
+read_docs = []
 read_paragraphs = []
+read_docs_txt = {}
+read_paragraphs_txt = {}
+unread_docs = []
+unread_paragraphs = []
+unread_docs_txt = {}
+unread_paragraphs_txt = {}
 
 class ListOfWords(object):
      def __init__(self, list_of_words):
@@ -27,24 +33,31 @@ class ReadTxtFiles(object):
         for fname in os.listdir(self.dirname):
             path = os.path.join(self.dirname, fname)
             self.doc = smart_open(path, encoding='latin')
-            read_files.append(fname)
+            # read_docs.append(fname)
 
             if self.level == 'document':
                 self.list = []
+                doc_txt = ""
                 for line in self.doc:
+                    doc_txt += line + "\n"
                     if (len(line.strip()) == 0):
                         continue  # skip blank lines
                     self.list = self.list + simple_preprocess(remove_stopwords(line), deacc=True)
+                read_docs.append(fname)
+                read_docs_txt[fname] = doc_txt
                 yield ListOfWords(self.list)
 
             elif self.level == 'paragraph':
-                paragreraph_idx = 0
+                paragraph_idx = 0
                 for line in self.doc:
                     if (len(line.strip()) == 0):
                         continue  # skip blank lines
+                    para_name = "{}_pg{}".format(fname, str(paragraph_idx))
+                    # read_paragraphs.append("{}_pg{}".format(fname, str(paragreraph_idx)))
+                    read_paragraphs.append(para_name)
+                    read_paragraphs_txt[para_name] = line
+                    paragraph_idx += 1
                     yield ListOfWords(simple_preprocess(remove_stopwords(line), deacc=True))
-                    read_paragraphs.append("{}_pg{}".format(fname, str(paragreraph_idx)))
-                    paragreraph_idx += 1
 
 class ListOfUnreadWords(object):
     def __init__(self, list_of_wrods, name):
@@ -63,22 +76,28 @@ class ReadUnreadTxtFiles(object):
 
         if self.level == 'document':
             self.word_list = []  # list of all words in the doc
+            doc_txt = ""
             for line in self.doc:
+                doc_txt += line
                 if (len(line.strip()) == 0):
                     continue  # skip blank lines
                 self.word_list = self.word_list + simple_preprocess(remove_stopwords(line), deacc=True)
             name = self.fname.split("/")[-1]
+            unread_docs.append(name)
+            unread_docs_txt[name] = doc_txt
             yield ListOfUnreadWords(self.word_list, name)
         elif self.level == 'paragraph':
             self.word_list = []  # list of all words in the doc
-            paragreraph_idx  = 0
-
+            paragraph_idx  = 0
             for line in self.doc:
                 if (len(line.strip()) == 0):
                     continue  # skip blank lines
-                name = "{}_pg{}".format(self.fname.split("/")[-1], str(paragreraph_idx))
+                name = "{}_pg{}".format(self.fname.split("/")[-1], str(paragraph_idx))
+                unread_paragraphs.append(name)
+                unread_paragraphs_txt[name] = line
+                paragraph_idx += 1
                 yield ListOfUnreadWords(simple_preprocess(remove_stopwords(line), deacc=True), name)
-                paragreraph_idx += 1
+
 
 def gensim_lsi(arg_read_path, arg_unread_file, level='document'):
 
@@ -134,13 +153,15 @@ def gensim_lsi(arg_read_path, arg_unread_file, level='document'):
         ranking = []
         for i, doc_score in sims:
             if level == 'document':
-                ranking.append((read_files[i], doc_score))
+                ranking.append((read_docs[i], doc_score, read_docs_txt[read_docs[i]]))
             elif level == 'paragraph':
-                ranking.append((read_paragraphs[i], doc_score))
+                ranking.append((read_paragraphs[i], doc_score, read_paragraphs_txt[read_paragraphs[i]]))
 
-        # print(ranking)
-        # print("*** here ***")
         rankings[doc.name] = ranking
-        rankings[doc.name] = {'raw_txt': doc.name, 'ranking': ranking}
+        if level == 'document':
+            rankings[doc.name] = {'raw_txt': unread_docs_txt[doc.name], 'ranking': ranking}
+        elif level == 'paragraph':
+            rankings[doc.name] = {'raw_txt': unread_paragraphs_txt[doc.name], 'ranking': ranking}
+        # rankings[doc.name] = {'raw_txt': doc.name, 'ranking': ranking}
 
     return rankings

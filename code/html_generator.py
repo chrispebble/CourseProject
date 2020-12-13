@@ -1,17 +1,21 @@
 
 class HTML_Generator:
-    # Usage example:
-    '''
-    html = HTML_Generator(outfile = "output.html", name="my_ranked_doc.txt")
-    html.add_text("text to always show, of the ranked document")
-    html.add_match(match_name, match_score, match_text)
-    html.write_file()
-    '''
+
+    def write_it(self, it, how):
+        """
+        Opens the file (name set during object creation), writes, and closes
+        """
+        f = open(self.outfile, how)
+        f.write(it)
+        f.close()
 
     def __init__(self, outfile, name):
+        """
+        As part of the creation process, the output file is started
+        """
         self.outfile = outfile
         self.name = name
-        self.outstr = '''
+        outstr = '''
             <!-- source: W3 Schools https://www.w3schools.com/howto/howto_js_collapsible.asp -->
             <!DOCTYPE html>
             <html>
@@ -57,23 +61,43 @@ class HTML_Generator:
             </head>
             <body>
             '''
-        self.outstr += "<h2>Rank for: " + self.name + "</h2>"
+        outstr += "<h2>Rank for: " + self.name + "</h2>"
+        self.write_it(outstr, "w")
 
     def add_divide(self, text):
-        self.outstr += "<hr/><hr/><hr/><h1>" + str(text) + "</h1>"
+        """
+        A major header
+        """
+        outstr = "<hr/><hr/><hr/><h1>" + str(text) + "</h1>"
+        self.write_it(outstr, "a")
 
     def add_title(self, text):
-        self.outstr += "<h3>" + str(text) + "</h3>"
+        """
+        A minor header
+        """
+        outstr = "<h3>" + str(text) + "</h3>"
+        self.write_it(outstr, "a")
 
     def add_text(self, text):
-        self.outstr += "<p>" + str(text) + "</p>"
+        """
+        <paragraph> text
+        """
+        outstr = "<p>" + str(text) + "</p>"
+        self.write_it(outstr, "a")
 
     def add_match(self, match_name, match_score, match_text):
-        self.outstr += "<button class=\"collapsible\"> similarity found: " + str(match_name) + "(score=" + str(match_score) + ") " + "</button>"
-        self.outstr += "<div class=\"content\"><p>" + str(match_text) + "</p></div>"
+        """
+        Adds text inside a drop-down
+        """
+        outstr = "<button class=\"collapsible\"> similarity found: " + str(match_name) + "(score=" + str(match_score) + ") " + "</button>"
+        outstr += "<div class=\"content\"><p>" + str(match_text) + "</p></div>"
+        self.write_it(outstr, "a")
 
-    def write_file(self):
-        self.outstr += '''
+    def close_file(self):
+        """
+        Adds footer HTML
+        """
+        outstr = '''
             <script>
             var coll = document.getElementsByClassName("collapsible");
             var i;
@@ -95,13 +119,9 @@ class HTML_Generator:
             </html>
             '''
 
-        # print(self.outstr)
+        self.write_it(outstr, "a")
 
-        f = open(self.outfile, "w")
-        f.write(self.outstr)
-        f.close()
 
-        print("\nDropping your pen and rubbing your temples, you look over", self.outfile, "and smile knowing the analysis is done.  ")
 
 
 
