@@ -178,7 +178,9 @@ Please use one of the following commands:
 ```
 
 To see the rank of the unread document **covid-annex-1.txt** you would
-enter `rank 1` at the prompt.
+enter `rank 1` at the prompt. An "output.html" will also be generated 
+in the directory where the command is issued. It contains the same info 
+as the console output and provides a better visual representation.
 
 To move a document **covid-bhc-contact-sop-2.txt** from the *unread* into the *
 read* grouping, type `read 0`.
@@ -201,7 +203,6 @@ ranking score. That is, a scope of 2 means that only documents and paragraphs th
 standard deviations above the mean score are returned. A scope of 0 means that all documents and paragraphs
 above the mean ranking score are returned. Generally, a higher scope means fewer documents and paragraphs
 returned, but these documents and paragraphs are much more relevant. 
-
 
 
 Team Contributions
