@@ -115,14 +115,9 @@ document into LSI space and compute the cosine similarity. The scores will then
 be sorted in descending order. Similarly, we also implemented paragraph level 
 analysis for LSI similarity.
 
-To heuristically gauge the effectiveness of this
-method, each team member collected approximately 8-10 documents. These documents
-were loaded as the previously-read documents, and additional documents were
-provided as the unseen documents. From the preliminary examination, the results
-seem promising. The code is written in a modular fashion, so that we can easily
+The code is written in a modular fashion, so that we can easily
 extend the assistant to use different similarity/difference measures and
 methods
-
 
 Usage
 =====
@@ -209,6 +204,11 @@ standard deviations above the mean score are returned. A scope of 0 means that a
 above the mean ranking score are returned. Generally, a higher scope means fewer documents and paragraphs
 returned, but these documents and paragraphs are much more relevant. 
 
+Results
+==============
+To heuristically gauge the effectiveness of the reading assistant, each team member collected approximately 8-10 documents. These documents
+were loaded as the previously-read documents, and additional documents were
+provided as the unseen documents. From the preliminary examination, the results seem promising and inline with common knowledge. 
 
 Team Contributions
 ==================
