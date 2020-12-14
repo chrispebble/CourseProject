@@ -200,15 +200,19 @@ The 'set scope [integer]' command determines scope of the ranking results. As ea
 and paragraph in READ FILES is given a ranking score, the [integer] determines the cut-off
 of these scores. More specifically, the [integer] is the number of standard deviations above the mean
 ranking score. That is, a scope of 2 means that only documents and paragraphs that are two or more
-standard deviations above the mean score are returned. A scope of 0 means that all documents and paragraphs
-above the mean ranking score are returned. Generally, a higher scope means fewer documents and paragraphs
-returned, but these documents and paragraphs are much more relevant. 
+standard deviations above the mean score are returned. A scope of 0 means that all documents and paragraphs above the mean ranking score are returned. Generally, a higher scope means fewer documents and paragraphs returned, but these documents and paragraphs are much more relevant. 
 
 Results
 ==============
-To heuristically gauge the effectiveness of the reading assistant, each team member collected approximately 8-10 documents. These documents
-were loaded as the previously-read documents, and additional documents were
-provided as the unseen documents. From the preliminary examination, the results seem promising and inline with common knowledge. 
+To heuristically gauge the effectiveness of the reading assistant, each team member collected approximately 8-10 documents. These documents were loaded as the previously-read documents, and additional documents were provided as the unseen documents. From the preliminary examination, the results seem promising and inline with our qualitative evaluation of the documents.
+
+We found these results to be interesting and potentially be useful in a real world application.  Using the results from our tool, one could easily find related previously read documents.  Additionally if a paragraph was interesting one could find the similar passages.  Alternatively, a document highlighter with links to related documents could be created.  After creating the tool the existence of similar functionality became evident in other software such as Evernote, which shows similar notes to the one the user is currently viewing.  The Evernote use case is not quite the same as our stated use case, but likely relies on some similar information retrievel techniques to generate the list of similar documents.
+
+Interestingly, the original impetus behind creating the tool was to find similar **and** different documents, however in the process of creating this tool we came to understand how the BM25 and LSI algorithms are powered towards similarities, not differences.  The root of this is that there are only a few ways a document can be similar, but many ways documents can be different.  This was an interesting realization, and further thought towards how to find *useful* differences could be discovered was an interesting thought experiment, although we did not make significant headway into how to solve that problem.  
+
+If we were to continue to develop this project further, there are a few areas where we could easily improve the tool.  One would be to integrate the data structures between the BM25 and gensim LSI algorithm so that the reading and memory usage was more efficient.  Additionally, the LSI algorithm is capable of adding documents without needing to completely recreate it's underying data structures.  Depending on how the tool would be used (if for instance documents would be frequently added) this would improve the efficiency of the tool.  Manipulation of the parameters of the algorithms would be another area where improvements could be made.  Manipulation of either with the **k** value of BM25, or the topic number of LSI coud lead to subtle improvements in results.  Creating of a data set with user rankings for comparison to the results would also be very helpful in objectively analyzing the results of these tweaks.  Creation of such a data set - with human-choosen similar paragarphs - would be time consuming to create but could result in use of comparison functions such as the F1 score which would facilitate further development.  
+
+Overall we felt this tool was a strong starting point to further work in the realm of a reading assistant.
 
 Team Contributions
 ==================
