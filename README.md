@@ -125,6 +125,9 @@ methods
 
 Usage
 =====
+View our usage video here:
+<a href="https://www.youtube.com/watch?v=RO351eoZ1ZU&feature=youtu.be"><img src="https://github.com/chrispebble/CourseProject/blob/main/presentation.png" alt="Link to Youtube Presentation" width="75%"></a>
+
 We recommend using python 3.6 or 3.7, with gensim (and its dependencies), as
 well as the smart_open package.
 
