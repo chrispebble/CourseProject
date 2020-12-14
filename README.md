@@ -6,6 +6,7 @@
 > Zichun Xu (zichunx2)  
 > Kevin Ros (kjros2)
 
+Video presentation: https://youtu.be/RO351eoZ1ZU
 <!--
 ### Documentation Guidelines
 
